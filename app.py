@@ -35,9 +35,9 @@ def load_data():
             with open(DATA_FILE, "r", encoding="utf-8") as f:
                 content = json.load(f)
                 if isinstance(content, dict):
-                    if "lands" not in content:
+                    if "lands" not in content or not isinstance(content["lands"], dict):
                         content["lands"] = {}
-                    if "stations" not in content:
+                    if "stations" not in content or not isinstance(content["stations"], dict):
                         content["stations"] = {}
                     return content
         except Exception:
@@ -48,17 +48,28 @@ def load_data():
     }
 
 def save_data(data):
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+    try:
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+    except Exception:
+        pass
 
 if "data" not in st.session_state:
     st.session_state.data = load_data()
 
 data = st.session_state.data
+if not isinstance(data, dict):
+    data = {"lands": {}, "stations": {}}
+    st.session_state.data = data
+
+if "lands" not in data or not isinstance(data["lands"], dict):
+    data["lands"] = {}
+if "stations" not in data or not isinstance(data["stations"], dict):
+    data["stations"] = {}
 
 # الشاشة الرئيسية والعنوان مع الأرقام القديمة
 st.title("🌱 شركة الرحمة لإدارة الأراضي")
-st.caption("📞 تليفون: 01025700760 | 01090449553")
+st.caption("📞 تليفون: 01090449553 | 01025700760")
 
 # تسجيل الدخول بكلمة السر الجديدة 332007
 if "authenticated" not in st.session_state:
@@ -132,6 +143,8 @@ if menu == "🏜️ حسابات الأراضي":
                     amount = st.number_input("المبلغ / القيمة (جنيه)", min_value=0.0, step=50.0)
                     submit_exp = st.form_submit_button("حفظ وإضافة المصروف (Enter ↵)")
                     if submit_exp and amount > 0:
+                        if "expenses" not in land_info:
+                            land_info["expenses"] = []
                         land_info["expenses"].append({"type": exp_type, "amount": amount})
                         save_data(data)
                         st.success("تم تسجيل المصروف بنجاح!")
@@ -143,14 +156,16 @@ if menu == "🏜️ حسابات الأراضي":
                     pay_note = st.text_input("ملاحظات / البيان")
                     submit_pay = st.form_submit_button("حفظ الدفعة (Enter ↵)")
                     if submit_pay and pay_amount > 0:
+                        if "payments" not in land_info:
+                            land_info["payments"] = []
                         land_info["payments"].append({"amount": pay_amount, "note": pay_note})
                         save_data(data)
                         st.success("تم تسجيل الدفعة بنجاح!")
                         st.rerun()
 
             with tab2:
-                total_expenses = sum(x["amount"] for x in land_info.get("expenses", []))
-                total_payments = sum(x["amount"] for x in land_info.get("payments", []))
+                total_expenses = sum(x.get("amount", 0) for x in land_info.get("expenses", []))
+                total_payments = sum(x.get("amount", 0) for x in land_info.get("payments", []))
                 
                 col1, col2 = st.columns(2)
                 col1.metric("إجمالي المصاريف", f"{total_expenses:,.2f} جنيه")
@@ -180,6 +195,8 @@ if menu == "🏜️ حسابات الأراضي":
                         e_type = cust_exp if exp_opt == "آخر" and cust_exp else exp_opt
                         val = st.number_input("القيمة (جنيه)", min_value=0.0)
                         if st.form_submit_button("حفظ المصروف"):
+                            if "expenses" not in land_info:
+                                land_info["expenses"] = []
                             land_info["expenses"].append({"type": e_type, "amount": val})
                             save_data(data)
                             st.success("تم الحفظ!")
@@ -190,6 +207,8 @@ if menu == "🏜️ حسابات الأراضي":
                         st.write("##### فلوس أخذها صاحب الأرض")
                         p_val = st.number_input("المبلغ (جنيه)", min_value=0.0)
                         if st.form_submit_button("حفظ الدفعة"):
+                            if "payments" not in land_info:
+                                land_info["payments"] = []
                             land_info["payments"].append({"amount": p_val})
                             save_data(data)
                             st.success("تم الحفظ!")
@@ -205,6 +224,8 @@ if menu == "🏜️ حسابات الأراضي":
                     if st.form_submit_button("حفظ التوريد (Enter ↵)"):
                         net_weight = raw_weight * (1 - (discount_rate / 100.0))
                         total_price = net_weight * price_per_kg
+                        if "supplies" not in land_info:
+                            land_info["supplies"] = []
                         land_info["supplies"].append({
                             "raw_weight": raw_weight,
                             "discount_rate": discount_rate,
@@ -217,8 +238,8 @@ if menu == "🏜️ حسابات الأراضي":
                         st.rerun()
 
             with tab2:
-                tot_exp = sum(x["amount"] for x in land_info.get("expenses", []))
-                tot_pay = sum(x["amount"] for x in land_info.get("payments", []))
+                tot_exp = sum(x.get("amount", 0) for x in land_info.get("expenses", []))
+                tot_pay = sum(x.get("amount", 0) for x in land_info.get("payments", []))
                 tot_raw_w = sum(x.get("raw_weight", 0) for x in land_info.get("supplies", []))
                 tot_net_w = sum(x.get("net_weight", 0) for x in land_info.get("supplies", []))
                 tot_potato_val = sum(x.get("total_price", 0) for x in land_info.get("supplies", []))
@@ -226,7 +247,7 @@ if menu == "🏜️ حسابات الأراضي":
                 remaining_for_him = tot_potato_val - (tot_exp + tot_pay)
 
                 st.markdown("### 📜 شركة الرحمة لإدارة الأراضي")
-                st.caption(f"📞 تليفون: 01025700760 | 01090449553")
+                st.caption(f"📞 تليفون: 01090449553 | 01025700760")
                 st.caption(f"كشف حساب العميل: {selected_land} | نوع العميل: بطاطا صادر في البوكسة")
                 st.write("---")
                 
@@ -246,6 +267,7 @@ if menu == "🏜️ حسابات الأراضي":
                 st.write("##### تفاصيل توريدات البطاطا")
                 if land_info.get("supplies"):
                     df_s = pd.DataFrame(land_info["supplies"])
+                    df_s.columns = ["وزن خام", "نسبة خصم %", "وزن صافي", "سعر الكيلو", "الإجمالي"]
                     st.dataframe(df_s, use_container_width=True)
 
 # ---------------------------------------------------------
@@ -298,6 +320,8 @@ elif menu == "🏭 توريد المحطات":
                         w_net = w_raw * (1 - (disc_val / 100.0))
                     
                     tot_p = w_net * price_kg
+                    if "supplies" not in st_data:
+                        st_data["supplies"] = []
                     st_data["supplies"].append({
                         "raw_weight": w_raw,
                         "discount_type": disc_type,
@@ -314,6 +338,8 @@ elif menu == "🏭 توريد المحطات":
                 st.write("##### تسجيل دفعة مقبوضة من المحطة")
                 st_p_amount = st.number_input("المبلغ المستلم من المحطة (جنيه)", min_value=0.0)
                 if st.form_submit_button("حفظ الدفعة"):
+                    if "payments" not in st_data:
+                        st_data["payments"] = []
                     st_data["payments"].append({"amount": st_p_amount})
                     save_data(data)
                     st.success("تم تسجيل الدفعة!")
@@ -355,8 +381,8 @@ elif menu == "📈 صافي أرباح الأراضي":
                     total_sales += sub_total
                     st.write("---")
 
-            tot_e = sum(x["amount"] for x in l_info.get("expenses", []))
-            tot_p = sum(x["amount"] for x in l_info.get("payments", []))
+            tot_e = sum(x.get("amount", 0) for x in l_info.get("expenses", []))
+            tot_p = sum(x.get("amount", 0) for x in l_info.get("payments", []))
             
             net_profit = total_sales - (tot_e + tot_p)
 
@@ -382,8 +408,8 @@ elif menu == "📊 الموقف المالي":
     total_due_to_clients = 0.0
     for l_n, l_v in data.get("lands", {}).items():
         if l_v.get("type") == "بطاطا صادر في البوكسة":
-            tot_exp = sum(x["amount"] for x in l_v.get("expenses", []))
-            tot_pay = sum(x["amount"] for x in l_v.get("payments", []))
+            tot_exp = sum(x.get("amount", 0) for x in l_v.get("expenses", []))
+            tot_pay = sum(x.get("amount", 0) for x in l_v.get("payments", []))
             tot_potato_val = sum(x.get("total_price", 0) for x in l_v.get("supplies", []))
             rem = tot_potato_val - (tot_exp + tot_pay)
             if rem > 0:
