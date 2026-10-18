@@ -1,0 +1,752 @@
+{
+    "lands": [
+        {
+            "owner": "عوض",
+            "phone": "01122553366",
+            "location": "اللوزي شربين"
+        },
+        {
+            "owner": "مصطفى اللوزي",
+            "phone": "",
+            "location": "اللوزي شربين"
+        }
+    ],
+    "land_accounts": [
+        {
+            "owner": "عوض",
+            "date": "2026-09-21",
+            "item": "بطاطا",
+            "expense_desc": "اجمالي مصروفات",
+            "expense_amount": 42900.0,
+            "sader": 26110.0,
+            "second": 0.0,
+            "farza": 13350.0,
+            "advanced_cash": 149500.0
+        },
+        {
+            "owner": "مصطفى اللوزي",
+            "date": "2026-09-22",
+            "item": "بطاطا صحراوي(بيوجارد)",
+            "expense_desc": "اجمالي مصاريف",
+            "expense_amount": 28200.0,
+            "sader": 13848.0,
+            "second": 0.0,
+            "farza": 7435.0,
+            "advanced_cash": 70800.0
+        }
+    ],
+    "stations": [
+        {
+            "name": "كريم",
+            "phone": "01093989862"
+        },
+        {
+            "name": "راضي",
+            "phone": "01019883129"
+        },
+        {
+            "name": "ابراهيم",
+            "phone": ""
+        },
+        {
+            "name": "الشعراوي",
+            "phone": ""
+        }
+    ],
+    "station_supplies": [
+        {
+            "station": "كريم",
+            "date": "2026-09-15",
+            "car": "1569",
+            "weight": 4995.0,
+            "discount": 5.0,
+            "net_weight": 4745.25,
+            "price": 4.75,
+            "total_money": 22539.9375,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-17",
+            "car": "5829",
+            "weight": 5205.0,
+            "discount": 10.0,
+            "net_weight": 4684.5,
+            "price": 4.75,
+            "total_money": 22251.375,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-17",
+            "car": "8134",
+            "weight": 4950.0,
+            "discount": 15.0,
+            "net_weight": 4207.5,
+            "price": 4.75,
+            "total_money": 19985.625,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-17",
+            "car": "4156",
+            "weight": 4340.0,
+            "discount": 20.0,
+            "net_weight": 3472.0,
+            "price": 4.75,
+            "total_money": 16492.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-17",
+            "car": "",
+            "weight": 0.0,
+            "discount": 0.0,
+            "net_weight": 0.0,
+            "price": 0.0,
+            "total_money": 0.0,
+            "paid_amount": 26000.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-17",
+            "car": "",
+            "weight": 0.0,
+            "discount": 0.0,
+            "net_weight": 0.0,
+            "price": 0.0,
+            "total_money": 0.0,
+            "paid_amount": 54000.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-20",
+            "car": "8774",
+            "weight": 4470.0,
+            "discount": 10.0,
+            "net_weight": 4023.0,
+            "price": 4.75,
+            "total_money": 19109.25,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-20",
+            "car": "4156",
+            "weight": 5060.0,
+            "discount": 10.0,
+            "net_weight": 4554.0,
+            "price": 4.75,
+            "total_money": 21631.5,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-22",
+            "car": "0",
+            "weight": 4955.0,
+            "discount": 8.0,
+            "net_weight": 4558.6,
+            "price": 4.75,
+            "total_money": 21653.350000000002,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-22",
+            "car": "0",
+            "weight": 4750.0,
+            "discount": 10.0,
+            "net_weight": 4275.0,
+            "price": 4.75,
+            "total_money": 20306.25,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-22",
+            "car": "0",
+            "weight": 5030.0,
+            "discount": 10.0,
+            "net_weight": 4527.0,
+            "price": 4.75,
+            "total_money": 21503.25,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-23",
+            "car": "9718",
+            "weight": 5145.0,
+            "discount": 10.0,
+            "net_weight": 4630.5,
+            "price": 4.75,
+            "total_money": 21994.875,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-23",
+            "car": "8774",
+            "weight": 3660.0,
+            "discount": 10.0,
+            "net_weight": 3294.0,
+            "price": 4.75,
+            "total_money": 15646.5,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-24",
+            "car": "5468",
+            "weight": 2950.0,
+            "discount": 5.0,
+            "net_weight": 2802.5,
+            "price": 4.75,
+            "total_money": 13311.875,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-23",
+            "car": "5468",
+            "weight": 4905.0,
+            "discount": 10.0,
+            "net_weight": 4414.5,
+            "price": 4.75,
+            "total_money": 20968.875,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-24",
+            "car": "8774",
+            "weight": 3935.0,
+            "discount": 10.0,
+            "net_weight": 3541.5,
+            "price": 4.75,
+            "total_money": 16822.125,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-24",
+            "car": "4798",
+            "weight": 4360.0,
+            "discount": 10.0,
+            "net_weight": 3924.0,
+            "price": 4.75,
+            "total_money": 18639.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-25",
+            "car": "1284",
+            "weight": 4065.0,
+            "discount": 10.0,
+            "net_weight": 3658.5,
+            "price": 5.75,
+            "total_money": 21036.375,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-26",
+            "car": "2639",
+            "weight": 4000.0,
+            "discount": 5.0,
+            "net_weight": 3800.0,
+            "price": 5.75,
+            "total_money": 21850.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-29",
+            "car": "4531",
+            "weight": 3075.0,
+            "discount": 10.0,
+            "net_weight": 2767.5,
+            "price": 6.0,
+            "total_money": 16605.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-29",
+            "car": "7984",
+            "weight": 4425.0,
+            "discount": 10.0,
+            "net_weight": 3982.5,
+            "price": 6.0,
+            "total_money": 23895.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-29",
+            "car": "",
+            "weight": 0.0,
+            "discount": 0.0,
+            "net_weight": 0.0,
+            "price": 0.0,
+            "total_money": 0.0,
+            "paid_amount": 50000.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-29",
+            "car": "",
+            "weight": 0.0,
+            "discount": 0.0,
+            "net_weight": 0.0,
+            "price": 0.0,
+            "total_money": 0.0,
+            "paid_amount": 50000.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-29",
+            "car": "",
+            "weight": 0.0,
+            "discount": 0.0,
+            "net_weight": 0.0,
+            "price": 0.0,
+            "total_money": 0.0,
+            "paid_amount": 50000.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-29",
+            "car": "",
+            "weight": 0.0,
+            "discount": 0.0,
+            "net_weight": 0.0,
+            "price": 0.0,
+            "total_money": 0.0,
+            "paid_amount": 10500.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-26",
+            "car": "0",
+            "weight": 4175.0,
+            "discount": 3.5,
+            "net_weight": 4028.875,
+            "price": 5.75,
+            "total_money": 23166.03125,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-26",
+            "car": "1257",
+            "weight": 3840.0,
+            "discount": 12.0,
+            "net_weight": 3379.2,
+            "price": 5.75,
+            "total_money": 19430.399999999998,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "كريم",
+            "date": "2026-09-26",
+            "car": "",
+            "weight": 0.0,
+            "discount": 0.0,
+            "net_weight": 0.0,
+            "price": 0.0,
+            "total_money": 0.0,
+            "paid_amount": 78338.59
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-03",
+            "car": "3218",
+            "weight": 4350.0,
+            "discount": 0.0,
+            "net_weight": 4350.0,
+            "price": 7.0,
+            "total_money": 30450.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-03",
+            "car": "8193",
+            "weight": 4790.0,
+            "discount": 0.0,
+            "net_weight": 4790.0,
+            "price": 7.0,
+            "total_money": 33530.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-03",
+            "car": "7939",
+            "weight": 4735.0,
+            "discount": 0.0,
+            "net_weight": 4735.0,
+            "price": 7.0,
+            "total_money": 33145.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-07",
+            "car": "2839",
+            "weight": 5020.0,
+            "discount": 0.0,
+            "net_weight": 5020.0,
+            "price": 5.5,
+            "total_money": 27610.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-07",
+            "car": "6257",
+            "weight": 4720.0,
+            "discount": 0.0,
+            "net_weight": 4720.0,
+            "price": 5.5,
+            "total_money": 25960.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-07",
+            "car": "6219",
+            "weight": 4950.0,
+            "discount": 0.0,
+            "net_weight": 4950.0,
+            "price": 5.5,
+            "total_money": 27225.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-08",
+            "car": "8962",
+            "weight": 5165.0,
+            "discount": 0.0,
+            "net_weight": 5165.0,
+            "price": 5.5,
+            "total_money": 28407.5,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-08",
+            "car": "9649",
+            "weight": 5125.0,
+            "discount": 0.0,
+            "net_weight": 5125.0,
+            "price": 5.5,
+            "total_money": 28187.5,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-08",
+            "car": "1246",
+            "weight": 5260.0,
+            "discount": 0.0,
+            "net_weight": 5260.0,
+            "price": 5.5,
+            "total_money": 28930.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-09",
+            "car": "6257",
+            "weight": 5085.0,
+            "discount": 0.0,
+            "net_weight": 5085.0,
+            "price": 5.5,
+            "total_money": 27967.5,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-09",
+            "car": "3218",
+            "weight": 5140.0,
+            "discount": 0.0,
+            "net_weight": 5140.0,
+            "price": 5.5,
+            "total_money": 28270.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-09",
+            "car": "2839",
+            "weight": 5200.0,
+            "discount": 0.0,
+            "net_weight": 5200.0,
+            "price": 5.5,
+            "total_money": 28600.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-09",
+            "car": "3452",
+            "weight": 4815.0,
+            "discount": 0.0,
+            "net_weight": 4815.0,
+            "price": 7.0,
+            "total_money": 33705.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-10",
+            "car": "6219",
+            "weight": 5355.0,
+            "discount": 0.0,
+            "net_weight": 5355.0,
+            "price": 5.5,
+            "total_money": 29452.5,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-10",
+            "car": "8193",
+            "weight": 4855.0,
+            "discount": 0.0,
+            "net_weight": 4855.0,
+            "price": 5.5,
+            "total_money": 26702.5,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-10",
+            "car": "1246",
+            "weight": 3870.0,
+            "discount": 0.0,
+            "net_weight": 3870.0,
+            "price": 5.5,
+            "total_money": 21285.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-10",
+            "car": "",
+            "weight": 0.0,
+            "discount": 0.0,
+            "net_weight": 0.0,
+            "price": 0.0,
+            "total_money": 0.0,
+            "paid_amount": 100000.0
+        },
+        {
+            "station": "راضي",
+            "date": "2026-09-10",
+            "car": "",
+            "weight": 0.0,
+            "discount": 0.0,
+            "net_weight": 0.0,
+            "price": 0.0,
+            "total_money": 0.0,
+            "paid_amount": 59427.5
+        },
+        {
+            "station": "راضي",
+            "date": "2026-10-18",
+            "car": "",
+            "weight": 0.0,
+            "discount": 0.0,
+            "net_weight": 0.0,
+            "price": 0.0,
+            "total_money": 0.0,
+            "paid_amount": 100000.0
+        },
+        {
+            "station": "ابراهيم",
+            "date": "2026-08-26",
+            "car": "0000",
+            "weight": 3955.0,
+            "discount": 0.0,
+            "net_weight": 3955.0,
+            "price": 6.5,
+            "total_money": 25707.5,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "ابراهيم",
+            "date": "2026-08-26",
+            "car": "0000",
+            "weight": 6965.0,
+            "discount": 0.0,
+            "net_weight": 6965.0,
+            "price": 5.0,
+            "total_money": 34825.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "ابراهيم",
+            "date": "2026-08-31",
+            "car": "5628",
+            "weight": 4725.0,
+            "discount": 9.0,
+            "net_weight": 4299.75,
+            "price": 8.0,
+            "total_money": 34398.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "ابراهيم",
+            "date": "2026-08-31",
+            "car": "0000",
+            "weight": 3785.0,
+            "discount": 20.0,
+            "net_weight": 3028.0,
+            "price": 8.0,
+            "total_money": 24224.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "ابراهيم",
+            "date": "2026-09-01",
+            "car": "9598",
+            "weight": 4180.0,
+            "discount": 25.0,
+            "net_weight": 3135.0,
+            "price": 8.0,
+            "total_money": 25080.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "ابراهيم",
+            "date": "2026-09-01",
+            "car": "3587",
+            "weight": 5155.0,
+            "discount": 25.0,
+            "net_weight": 3866.25,
+            "price": 8.0,
+            "total_money": 30930.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "الشعراوي",
+            "date": "2026-07-31",
+            "car": "3587",
+            "weight": 5455.0,
+            "discount": 4.0,
+            "net_weight": 5236.8,
+            "price": 10.0,
+            "total_money": 52368.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "الشعراوي",
+            "date": "2026-07-31",
+            "car": "5791",
+            "weight": 3715.0,
+            "discount": 15.0,
+            "net_weight": 3157.75,
+            "price": 10.0,
+            "total_money": 31577.5,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "الشعراوي",
+            "date": "2026-08-02",
+            "car": "3596",
+            "weight": 4805.0,
+            "discount": 9.0,
+            "net_weight": 4372.55,
+            "price": 9.0,
+            "total_money": 39352.950000000004,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "الشعراوي",
+            "date": "2026-08-02",
+            "car": "3732",
+            "weight": 4840.0,
+            "discount": 8.0,
+            "net_weight": 4452.8,
+            "price": 9.0,
+            "total_money": 40075.200000000004,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "الشعراوي",
+            "date": "2026-08-03",
+            "car": "3596",
+            "weight": 2240.0,
+            "discount": 0.0,
+            "net_weight": 2240.0,
+            "price": 9.0,
+            "total_money": 20160.0,
+            "paid_amount": 0.0
+        },
+        {
+            "station": "الشعراوي",
+            "date": "2026-08-13",
+            "car": "",
+            "weight": 0.0,
+            "discount": 0.0,
+            "net_weight": 0.0,
+            "price": 0.0,
+            "total_money": 0.0,
+            "paid_amount": 50000.0
+        },
+        {
+            "station": "الشعراوي",
+            "date": "2026-08-31",
+            "car": "",
+            "weight": 0.0,
+            "discount": 0.0,
+            "net_weight": 0.0,
+            "price": 0.0,
+            "total_money": 0.0,
+            "paid_amount": 50000.0
+        },
+        {
+            "station": "الشعراوي",
+            "date": "2026-08-31",
+            "car": "0000",
+            "weight": 874.35,
+            "discount": 0.0,
+            "net_weight": 874.35,
+            "price": 1.0,
+            "total_money": 874.35,
+            "paid_amount": 0.0
+        }
+    ],
+    "saved_profits": {
+        "عوض": {
+            "p_sader": 6.83,
+            "p_second": 0.0,
+            "p_farza": 1.25
+        },
+        "مصطفى اللوزي": {
+            "p_sader": 7.5,
+            "p_second": 0.0,
+            "p_farza": 1.25
+        }
+    },
+    "client_settings": {
+        "عوض": {
+            "discount": 5.0,
+            "price": 4.0
+        },
+        "مصطفى اللوزي": {
+            "discount": 5.0,
+            "price": 3.5
+        }
+    },
+    "last_date": "2026-08-31"
+}
