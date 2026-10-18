@@ -252,21 +252,21 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                     
                     if client_records:
                         for idx, record in enumerate(client_records):
-                            with st.expander(f"📅 التاريخ: {record['date']} | صادر: {record['sader']} | مصروف: {record['expense_amount']} ج"):
+                            with st.expander(f"📅 التاريخ: {record['date']} | صادر: {record.get('sader', 0)} | مصروف: {record.get('expense_amount', 0)} ج"):
                                 with st.form(f"edit_rec_{selected_client}_{idx}", clear_on_submit=False):
                                     e_date = st.date_input("تاريخ الحركة", value=datetime.datetime.strptime(record['date'], "%Y-%m-%d").date(), key=f"ed_d_{selected_client}_{idx}")
-                                    e_desc = st.text_input("نوع المصروف", value=record['expense_desc'], key=f"ed_desc_{selected_client}_{idx}")
-                                    e_exp_amt = st.number_input("قيمة المصروف", value=float(record['expense_amount']), min_value=0.0, key=f"ed_eamt_{selected_client}_{idx}")
+                                    e_desc = st.text_input("نوع المصروف", value=record.get('expense_desc', ''), key=f"ed_desc_{selected_client}_{idx}")
+                                    e_exp_amt = st.number_input("قيمة المصروف", value=float(record.get('expense_amount', 0.0)), min_value=0.0, key=f"ed_eamt_{selected_client}_{idx}")
                                     
                                     ec1, ec2, ec3 = st.columns(3)
                                     with ec1:
-                                        e_sader = st.number_input("وارد صادر", value=float(record['sader']), min_value=0.0, key=f"ed_sad_{selected_client}_{idx}")
+                                        e_sader = st.number_input("وارد صادر", value=float(record.get('sader', 0.0)), min_value=0.0, key=f"ed_sad_{selected_client}_{idx}")
                                     with ec2:
-                                        e_sec = st.number_input("وارد ثانية", value=float(record['second']), min_value=0.0, key=f"ed_sec_{selected_client}_{idx}")
+                                        e_sec = st.number_input("وارد ثانية", value=float(record.get('second', 0.0)), min_value=0.0, key=f"ed_sec_{selected_client}_{idx}")
                                     with ec3:
-                                        e_far = st.number_input("وارد فرزة", value=float(record['farza']), min_value=0.0, key=f"ed_far_{selected_client}_{idx}")
+                                        e_far = st.number_input("وارد فرزة", value=float(record.get('farza', 0.0)), min_value=0.0, key=f"ed_far_{selected_client}_{idx}")
                                     
-                                    e_adv = st.number_input("سلف نقدية أخذها", value=float(record['advanced_cash']), min_value=0.0, key=f"ed_adv_{selected_client}_{idx}")
+                                    e_adv = st.number_input("سلف نقدية أخذها", value=float(record.get('advanced_cash', 0.0)), min_value=0.0, key=f"ed_adv_{selected_client}_{idx}")
                                     
                                     col_btn1, col_btn2 = st.columns(2)
                                     with col_btn1:
@@ -311,16 +311,16 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                         active_discount = st.session_state.client_settings.get(selected_client, {}).get("discount", 0.0)
                         active_price = st.session_state.client_settings.get(selected_client, {}).get("price", 0.0)
                         
-                        total_sader = sum(r["sader"] for r in client_records)
-                        total_second = sum(r["second"] for r in client_records)
-                        total_farza = sum(r["farza"] for r in client_records)
+                        total_sader = sum(r.get("sader", 0) for r in client_records)
+                        total_second = sum(r.get("second", 0) for r in client_records)
+                        total_farza = sum(r.get("farza", 0) for r in client_records)
                         gross_weight = total_sader + total_second + total_farza
                         
                         discount_value = gross_weight * (active_discount / 100.0)
                         net_weight = gross_weight - discount_value
                         total_money_value = net_weight * active_price
-                        total_advanced = sum(r["advanced_cash"] for r in client_records)
-                        total_expenses = sum(r["expense_amount"] for r in client_records)
+                        total_advanced = sum(r.get("advanced_cash", 0) for r in client_records)
+                        total_expenses = sum(r.get("expense_amount", 0) for r in client_records)
                         
                         remaining_balance = total_money_value - (total_advanced + total_expenses)
                         
@@ -334,8 +334,8 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                         """)
                         st.success(f"### 💰 باقي له نهائياً: {remaining_balance:,.2f} جنيه")
 
-                else:
-                    st.info("لا توجد حركات مسجلة لهذا العميل حتى الآن.")
+                    else:
+                        st.info("لا توجد حركات مسجلة لهذا العميل حتى الآن.")
 
                 # ---------------------------------------------------------
                 # النوع الثاني: بطاطا صادر في البوكسة
@@ -386,16 +386,16 @@ if app_mode == "1. حسابات الأراضي والعملاء":
 
                     if box_records:
                         for b_idx, b_rec in enumerate(box_records):
-                            with st.expander(f"📅 التاريخ: {b_rec['date']} | الخام: {b_rec['raw_weight']} | الصافي: {b_rec['net_weight']}"):
+                            with st.expander(f"📅 التاريخ: {b_rec['date']} | الخام: {b_rec.get('raw_weight', 0)} | الصافي: {b_rec.get('net_weight', 0)}"):
                                 with st.form(f"edit_box_{selected_client}_{b_idx}", clear_on_submit=False):
                                     eb_date = st.date_input("التاريخ", value=datetime.datetime.strptime(b_rec['date'], "%Y-%m-%d").date(), key=f"ebd_{selected_client}_{b_idx}")
-                                    eb_desc = st.text_input("نوع المصروف", value=b_rec['expense_desc'], key=f"eb_desc_{selected_client}_{b_idx}")
-                                    eb_exp = st.number_input("قيمة المصروف", value=float(b_rec['expense_amount']), min_value=0.0, key=f"eb_exp_{selected_client}_{b_idx}")
+                                    eb_desc = st.text_input("نوع المصروف", value=b_rec.get('expense_desc', ''), key=f"eb_desc_{selected_client}_{b_idx}")
+                                    eb_exp = st.number_input("قيمة المصروف", value=float(b_rec.get('expense_amount', 0.0)), min_value=0.0, key=f"eb_exp_{selected_client}_{b_idx}")
                                     
-                                    eb_raw = st.number_input("وزن خام", value=float(b_rec['raw_weight']), min_value=0.0, key=f"eb_raw_{selected_client}_{b_idx}")
-                                    eb_disc = st.number_input("نسبة الخصم %", value=float(b_rec['discount_pct']), min_value=0.0, max_value=100.0, key=f"eb_disc_{selected_client}_{b_idx}")
-                                    eb_prc = st.number_input("السعر", value=float(b_rec['price']), min_value=0.0, key=f"eb_prc_{selected_client}_{b_idx}")
-                                    eb_adv = st.number_input("فلوس أخذها", value=float(b_rec['advanced_cash']), min_value=0.0, key=f"eb_adv_{selected_client}_{b_idx}")
+                                    eb_raw = st.number_input("وزن خام", value=float(b_rec.get('raw_weight', 0.0)), min_value=0.0, key=f"eb_raw_{selected_client}_{b_idx}")
+                                    eb_disc = st.number_input("نسبة الخصم %", value=float(b_rec.get('discount_pct', 0.0)), min_value=0.0, max_value=100.0, key=f"eb_disc_{selected_client}_{b_idx}")
+                                    eb_prc = st.number_input("السعر", value=float(b_rec.get('price', 0.0)), min_value=0.0, key=f"eb_prc_{selected_client}_{b_idx}")
+                                    eb_adv = st.number_input("فلوس أخذها", value=float(b_rec.get('advanced_cash', 0.0)), min_value=0.0, key=f"eb_adv_{selected_client}_{b_idx}")
 
                                     col_b1, col_b2 = st.columns(2)
                                     with col_b1:
@@ -425,11 +425,11 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                         st.rerun()
 
                         st.markdown("---")
-                        tot_exp_box = sum(r['expense_amount'] for r in box_records)
-                        tot_raw_box = sum(r['raw_weight'] for r in box_records)
-                        tot_net_box = sum(r['net_weight'] for r in box_records)
-                        tot_price_box = sum(r['total_price'] for r in box_records)
-                        tot_adv_box = sum(r['advanced_cash'] for r in box_records)
+                        tot_exp_box = sum(r.get('expense_amount', 0) for r in box_records)
+                        tot_raw_box = sum(r.get('raw_weight', 0) for r in box_records)
+                        tot_net_box = sum(r.get('net_weight', 0) for r in box_records)
+                        tot_price_box = sum(r.get('total_price', 0) for r in box_records)
+                        tot_adv_box = sum(r.get('advanced_cash', 0) for r in box_records)
                         
                         final_box_rem = tot_price_box - (tot_exp_box + tot_adv_box)
 
@@ -523,10 +523,10 @@ elif app_mode == "2. التوريد للمحطات":
                 st.write(f"📱 **رقم تليفون المحطة:** {st_info['phone']}")
                 
                 st_records = [s for s in st.session_state.station_supplies if s["station"] == selected_station]
-                total_raw_w = sum(s["weight"] for s in st_records)
-                total_net_w = sum(s["net_weight"] for s in st_records)
-                total_station_money = sum(s["total_money"] for s in st_records)
-                total_station_paid = sum(s["paid_amount"] for s in st_records)
+                total_raw_w = sum(s.get("weight", 0) for s in st_records)
+                total_net_w = sum(s.get("net_weight", 0) for s in st_records)
+                total_station_money = sum(s.get("total_money", 0) for s in st_records)
+                total_station_paid = sum(s.get("paid_amount", 0) for s in st_records)
                 remaining_on_station = total_station_money - total_station_paid
 
                 st.markdown("---")
@@ -593,7 +593,7 @@ elif app_mode == "2. التوريد للمحطات":
                         cols_st_row = st.columns([7, 1])
                         with cols_st_row[0]:
                             d_type_lbl = s_rec.get('disc_type', 'نسبة (%)')
-                            st.write(f"📅 **التاريخ:** {s_rec['date']} | 🚗 **السيارة:** {s_rec['car']} | **خام:** {s_rec['weight']} | **خصم ({d_type_lbl}):** {s_rec['discount']} | **صافي:** {s_rec['net_weight']:,.2f} | **السعر:** {s_rec['price']} ج | **الإجمالي:** {s_rec['total_money']:,.2f} ج | **المدفوع:** {s_rec['paid_amount']:,.2f} ج")
+                            st.write(f"📅 **التاريخ:** {s_rec['date']} | 🚗 **السيارة:** {s_rec.get('car', '')} | **خام:** {s_rec.get('weight', 0)} | **خصم ({d_type_lbl}):** {s_rec.get('discount', 0)} | **صافي:** {s_rec.get('net_weight', 0):,.2f} | **السعر:** {s_rec.get('price', 0)} ج | **الإجمالي:** {s_rec.get('total_money', 0):,.2f} ج | **المدفوع:** {s_rec.get('paid_amount', 0):,.2f} ج")
                         with cols_st_row[1]:
                             if st.button("🗑️ حذف", key=f"del_st_rec_{selected_station}_{idx_st}"):
                                 st.session_state.station_supplies.remove(s_rec)
@@ -731,8 +731,8 @@ elif app_mode == "4. الموقف المالي للشركة":
         st_name = st_obj["name"]
         st_recs = [s for s in st.session_state.station_supplies if s["station"] == st_name]
         if st_recs:
-            t_money = sum(s["total_money"] for s in st_recs)
-            t_paid = sum(s["paid_amount"] for s in st_recs)
+            t_money = sum(s.get("total_money", 0) for s in st_recs)
+            t_paid = sum(s.get("paid_amount", 0) for s in st_recs)
             total_all_stations_remaining += (t_money - t_paid)
 
     total_all_clients_remaining = 0.0
