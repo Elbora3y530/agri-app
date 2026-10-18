@@ -35,17 +35,14 @@ def load_data():
             with open(DATA_FILE, "r", encoding="utf-8") as f:
                 content = json.load(f)
                 if isinstance(content, dict):
-                    if "lands" not in content or not isinstance(content["lands"], dict):
+                    if "lands" not in content:
                         content["lands"] = {}
-                    if "stations" not in content or not isinstance(content["stations"], dict):
+                    if "stations" not in content:
                         content["stations"] = {}
                     return content
         except Exception:
             pass
-    return {
-        "lands": {},
-        "stations": {}
-    }
+    return {"lands": {}, "stations": {}}
 
 def save_data(data):
     try:
@@ -58,20 +55,18 @@ if "data" not in st.session_state:
     st.session_state.data = load_data()
 
 data = st.session_state.data
-if not isinstance(data, dict):
-    data = {"lands": {}, "stations": {}}
-    st.session_state.data = data
 
+# ضمان وجود الهياكل الأساسية
 if "lands" not in data or not isinstance(data["lands"], dict):
     data["lands"] = {}
 if "stations" not in data or not isinstance(data["stations"], dict):
     data["stations"] = {}
 
-# الشاشة الرئيسية والعنوان مع الأرقام القديمة
+# الشاشة الرئيسية والعنوان مع الأرقام الصحيحة
 st.title("🌱 شركة الرحمة لإدارة الأراضي")
-st.caption("📞 تليفون: 01090449553 | 01025700760")
+st.caption("📞 تليفون: 01019381124 | 01000108658")
 
-# تسجيل الدخول بكلمة السر الجديدة 332007
+# تسجيل الدخول بكلمة السر 332007
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
@@ -125,6 +120,11 @@ if menu == "🏜️ حسابات الأراضي":
     else:
         selected_land = st.selectbox("اختر العميل / الأرض لمراجعة الحسابات", lands_list)
         land_info = data["lands"][selected_land]
+        
+        if not isinstance(land_info, dict):
+            land_info = {"type": "بطاطا تحت الشرب", "expenses": [], "supplies": [], "payments": []}
+            data["lands"][selected_land] = land_info
+            
         land_type = land_info.get("type", "بطاطا تحت الشرب")
         
         st.subheader(f"صفحة حساب: {selected_land} ({land_type})")
@@ -143,7 +143,7 @@ if menu == "🏜️ حسابات الأراضي":
                     amount = st.number_input("المبلغ / القيمة (جنيه)", min_value=0.0, step=50.0)
                     submit_exp = st.form_submit_button("حفظ وإضافة المصروف (Enter ↵)")
                     if submit_exp and amount > 0:
-                        if "expenses" not in land_info:
+                        if "expenses" not in land_info or not isinstance(land_info["expenses"], list):
                             land_info["expenses"] = []
                         land_info["expenses"].append({"type": exp_type, "amount": amount})
                         save_data(data)
@@ -156,7 +156,7 @@ if menu == "🏜️ حسابات الأراضي":
                     pay_note = st.text_input("ملاحظات / البيان")
                     submit_pay = st.form_submit_button("حفظ الدفعة (Enter ↵)")
                     if submit_pay and pay_amount > 0:
-                        if "payments" not in land_info:
+                        if "payments" not in land_info or not isinstance(land_info["payments"], list):
                             land_info["payments"] = []
                         land_info["payments"].append({"amount": pay_amount, "note": pay_note})
                         save_data(data)
@@ -164,8 +164,11 @@ if menu == "🏜️ حسابات الأراضي":
                         st.rerun()
 
             with tab2:
-                total_expenses = sum(x.get("amount", 0) for x in land_info.get("expenses", []))
-                total_payments = sum(x.get("amount", 0) for x in land_info.get("payments", []))
+                expenses_list = land_info.get("expenses", []) if isinstance(land_info.get("expenses"), list) else []
+                payments_list = land_info.get("payments", []) if isinstance(land_info.get("payments"), list) else []
+                
+                total_expenses = sum(x.get("amount", 0) for x in expenses_list if isinstance(x, dict))
+                total_payments = sum(x.get("amount", 0) for x in payments_list if isinstance(x, dict))
                 
                 col1, col2 = st.columns(2)
                 col1.metric("إجمالي المصاريف", f"{total_expenses:,.2f} جنيه")
@@ -173,8 +176,8 @@ if menu == "🏜️ حسابات الأراضي":
 
                 st.write("---")
                 st.write("##### جدول المصروفات")
-                if land_info.get("expenses"):
-                    df_exp = pd.DataFrame(land_info["expenses"])
+                if expenses_list:
+                    df_exp = pd.DataFrame(expenses_list)
                     st.dataframe(df_exp, use_container_width=True)
                     if st.button("🗑️ مسح آخر مصروف"):
                         land_info["expenses"].pop()
@@ -195,7 +198,7 @@ if menu == "🏜️ حسابات الأراضي":
                         e_type = cust_exp if exp_opt == "آخر" and cust_exp else exp_opt
                         val = st.number_input("القيمة (جنيه)", min_value=0.0)
                         if st.form_submit_button("حفظ المصروف"):
-                            if "expenses" not in land_info:
+                            if "expenses" not in land_info or not isinstance(land_info["expenses"], list):
                                 land_info["expenses"] = []
                             land_info["expenses"].append({"type": e_type, "amount": val})
                             save_data(data)
@@ -207,7 +210,7 @@ if menu == "🏜️ حسابات الأراضي":
                         st.write("##### فلوس أخذها صاحب الأرض")
                         p_val = st.number_input("المبلغ (جنيه)", min_value=0.0)
                         if st.form_submit_button("حفظ الدفعة"):
-                            if "payments" not in land_info:
+                            if "payments" not in land_info or not isinstance(land_info["payments"], list):
                                 land_info["payments"] = []
                             land_info["payments"].append({"amount": p_val})
                             save_data(data)
@@ -224,7 +227,7 @@ if menu == "🏜️ حسابات الأراضي":
                     if st.form_submit_button("حفظ التوريد (Enter ↵)"):
                         net_weight = raw_weight * (1 - (discount_rate / 100.0))
                         total_price = net_weight * price_per_kg
-                        if "supplies" not in land_info:
+                        if "supplies" not in land_info or not isinstance(land_info["supplies"], list):
                             land_info["supplies"] = []
                         land_info["supplies"].append({
                             "raw_weight": raw_weight,
@@ -238,16 +241,20 @@ if menu == "🏜️ حسابات الأراضي":
                         st.rerun()
 
             with tab2:
-                tot_exp = sum(x.get("amount", 0) for x in land_info.get("expenses", []))
-                tot_pay = sum(x.get("amount", 0) for x in land_info.get("payments", []))
-                tot_raw_w = sum(x.get("raw_weight", 0) for x in land_info.get("supplies", []))
-                tot_net_w = sum(x.get("net_weight", 0) for x in land_info.get("supplies", []))
-                tot_potato_val = sum(x.get("total_price", 0) for x in land_info.get("supplies", []))
+                exp_list = land_info.get("expenses", []) if isinstance(land_info.get("expenses"), list) else []
+                pay_list = land_info.get("payments", []) if isinstance(land_info.get("payments"), list) else []
+                sup_list = land_info.get("supplies", []) if isinstance(land_info.get("supplies"), list) else []
+
+                tot_exp = sum(x.get("amount", 0) for x in exp_list if isinstance(x, dict))
+                tot_pay = sum(x.get("amount", 0) for x in pay_list if isinstance(x, dict))
+                tot_raw_w = sum(x.get("raw_weight", 0) for x in sup_list if isinstance(x, dict))
+                tot_net_w = sum(x.get("net_weight", 0) for x in sup_list if isinstance(x, dict))
+                tot_potato_val = sum(x.get("total_price", 0) for x in sup_list if isinstance(x, dict))
                 
                 remaining_for_him = tot_potato_val - (tot_exp + tot_pay)
 
                 st.markdown("### 📜 شركة الرحمة لإدارة الأراضي")
-                st.caption(f"📞 تليفون: 01090449553 | 01025700760")
+                st.caption("📞 تليفون: 01019381124 | 01000108658")
                 st.caption(f"كشف حساب العميل: {selected_land} | نوع العميل: بطاطا صادر في البوكسة")
                 st.write("---")
                 
@@ -265,9 +272,8 @@ if menu == "🏜️ حسابات الأراضي":
 
                 st.write("---")
                 st.write("##### تفاصيل توريدات البطاطا")
-                if land_info.get("supplies"):
-                    df_s = pd.DataFrame(land_info["supplies"])
-                    df_s.columns = ["وزن خام", "نسبة خصم %", "وزن صافي", "سعر الكيلو", "الإجمالي"]
+                if sup_list:
+                    df_s = pd.DataFrame(sup_list)
                     st.dataframe(df_s, use_container_width=True)
 
 # ---------------------------------------------------------
@@ -292,9 +298,15 @@ elif menu == "🏭 توريد المحطات":
     else:
         selected_st = st.selectbox("اختر المحطة", st_list)
         st_data = data["stations"][selected_st]
+        if not isinstance(st_data, dict):
+            st_data = {"supplies": [], "payments": []}
+            data["stations"][selected_st] = st_data
 
-        tot_supp_val = sum(x.get("total_price", 0) for x in st_data.get("supplies", []))
-        tot_st_pay = sum(x.get("amount", 0) for x in st_data.get("payments", []))
+        st_supplies = st_data.get("supplies", []) if isinstance(st_data.get("supplies"), list) else []
+        st_payments = st_data.get("payments", []) if isinstance(st_data.get("payments"), list) else []
+
+        tot_supp_val = sum(x.get("total_price", 0) for x in st_supplies if isinstance(x, dict))
+        tot_st_pay = sum(x.get("amount", 0) for x in st_payments if isinstance(x, dict))
         st_rem = tot_supp_val - tot_st_pay
 
         col_top1, col_top2, col_top3 = st.columns(3)
@@ -320,7 +332,7 @@ elif menu == "🏭 توريد المحطات":
                         w_net = w_raw * (1 - (disc_val / 100.0))
                     
                     tot_p = w_net * price_kg
-                    if "supplies" not in st_data:
+                    if "supplies" not in st_data or not isinstance(st_data["supplies"], list):
                         st_data["supplies"] = []
                     st_data["supplies"].append({
                         "raw_weight": w_raw,
@@ -338,7 +350,7 @@ elif menu == "🏭 توريد المحطات":
                 st.write("##### تسجيل دفعة مقبوضة من المحطة")
                 st_p_amount = st.number_input("المبلغ المستلم من المحطة (جنيه)", min_value=0.0)
                 if st.form_submit_button("حفظ الدفعة"):
-                    if "payments" not in st_data:
+                    if "payments" not in st_data or not isinstance(st_data["payments"], list):
                         st_data["payments"] = []
                     st_data["payments"].append({"amount": st_p_amount})
                     save_data(data)
@@ -347,8 +359,8 @@ elif menu == "🏭 توريد المحطات":
 
         with t2:
             st.write("##### توريدات المحطة")
-            if st_data.get("supplies"):
-                st.dataframe(pd.DataFrame(st_data["supplies"]), use_container_width=True)
+            if st_supplies:
+                st.dataframe(pd.DataFrame(st_supplies), use_container_width=True)
 
 # ---------------------------------------------------------
 # 3. صافي أرباح الأراضي
@@ -362,10 +374,12 @@ elif menu == "📈 صافي أرباح الأراضي":
     else:
         sel_l = st.selectbox("اختر العميل للبحث وعرض أوزان البطاطا", lands_list)
         l_info = data["lands"][sel_l]
+        if not isinstance(l_info, dict):
+            l_info = {}
         
         st.subheader(f"بيانات ومبيعات العميل: {sel_l}")
         
-        supplies = l_info.get("supplies", [])
+        supplies = l_info.get("supplies", []) if isinstance(l_info.get("supplies"), list) else []
         if not supplies:
             st.warning("لا توجد توريدات مسجلة لهذا العميل حتى الآن.")
         else:
@@ -373,16 +387,17 @@ elif menu == "📈 صافي أرباح الأراضي":
             
             total_sales = 0.0
             for idx, sup in enumerate(supplies):
-                with st.container():
-                    st.markdown(f"**التوريد #{idx + 1}** - وزن الصافي: `{sup.get('net_weight', 0):,.1f} كجم`")
-                    sell_price = st.number_input(f"سعر بيع التوريد #{idx + 1} (لكل كجم)", min_value=0.0, key=f"sell_{sel_l}_{idx}")
-                    sub_total = sell_price * sup.get('net_weight', 0)
-                    st.caption(f"إجمالي بيع التوريد: {sub_total:,.2f} جنيه")
-                    total_sales += sub_total
-                    st.write("---")
+                if isinstance(sup, dict):
+                    with st.container():
+                        st.markdown(f"**التوريد #{idx + 1}** - وزن الصافي: `{sup.get('net_weight', 0):,.1f} كجم`")
+                        sell_price = st.number_input(f"سعر بيع التوريد #{idx + 1} (لكل كجم)", min_value=0.0, key=f"sell_{sel_l}_{idx}")
+                        sub_total = sell_price * sup.get('net_weight', 0)
+                        st.caption(f"إجمالي بيع التوريد: {sub_total:,.2f} جنيه")
+                        total_sales += sub_total
+                        st.write("---")
 
-            tot_e = sum(x.get("amount", 0) for x in l_info.get("expenses", []))
-            tot_p = sum(x.get("amount", 0) for x in l_info.get("payments", []))
+            tot_e = sum(x.get("amount", 0) for x in l_info.get("expenses", []) if isinstance(x, dict))
+            tot_p = sum(x.get("amount", 0) for x in l_info.get("payments", []) if isinstance(x, dict))
             
             net_profit = total_sales - (tot_e + tot_p)
 
@@ -401,16 +416,23 @@ elif menu == "📊 الموقف المالي":
     
     total_due_from_stations = 0.0
     for st_n, st_v in data.get("stations", {}).items():
-        s_val = sum(x.get("total_price", 0) for x in st_v.get("supplies", []))
-        p_val = sum(x.get("amount", 0) for x in st_v.get("payments", []))
-        total_due_from_stations += (s_val - p_val)
+        if isinstance(st_v, dict):
+            s_list = st_v.get("supplies", []) if isinstance(st_v.get("supplies"), list) else []
+            p_list = st_v.get("payments", []) if isinstance(st_v.get("payments"), list) else []
+            s_val = sum(x.get("total_price", 0) for x in s_list if isinstance(x, dict))
+            p_val = sum(x.get("amount", 0) for x in p_list if isinstance(x, dict))
+            total_due_from_stations += (s_val - p_val)
 
     total_due_to_clients = 0.0
     for l_n, l_v in data.get("lands", {}).items():
-        if l_v.get("type") == "بطاطا صادر في البوكسة":
-            tot_exp = sum(x.get("amount", 0) for x in l_v.get("expenses", []))
-            tot_pay = sum(x.get("amount", 0) for x in l_v.get("payments", []))
-            tot_potato_val = sum(x.get("total_price", 0) for x in l_v.get("supplies", []))
+        if isinstance(l_v, dict) and l_v.get("type") == "بطاطا صادر في البوكسة":
+            e_list = l_v.get("expenses", []) if isinstance(l_v.get("expenses"), list) else []
+            p_list = l_v.get("payments", []) if isinstance(l_v.get("payments"), list) else []
+            s_list = l_v.get("supplies", []) if isinstance(l_v.get("supplies"), list) else []
+            
+            tot_exp = sum(x.get("amount", 0) for x in e_list if isinstance(x, dict))
+            tot_pay = sum(x.get("amount", 0) for x in p_list if isinstance(x, dict))
+            tot_potato_val = sum(x.get("total_price", 0) for x in s_list if isinstance(x, dict))
             rem = tot_potato_val - (tot_exp + tot_pay)
             if rem > 0:
                 total_due_to_clients += rem
