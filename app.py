@@ -53,17 +53,46 @@ st.set_page_config(
     layout="wide"
 )
 
-# تطبيق تنسيقات CSS الاحترافية والمظهر الأنيق العصري
+# ==========================================
+# 🎨 تنسيقات CSS العصرية لإخفاء الزائد والناقص وتحسين الواجهة
+# ==========================================
 st.markdown("""
     <style>
-    div[data-baseweb="input"] input:focus, div[data-baseweb="select"] input:focus {
-        border-color: #1E88E5 !important;
-        box-shadow: 0 0 10px rgba(30, 136, 229, 0.4) !important;
+    /* إخفاء أزرار الزائد والناقص من خانات الأرقام تماماً لتكتب براحتك */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    
+    /* تنسيق عام للخطوط والخلفيات والأزرار */
+    .main {
+        background-color: #f8f9fa;
     }
     .stTextInput > div > div > input, .stNumberInput > div > div > input {
         border-radius: 8px !important;
+        border: 1px solid #ced4da !important;
+        padding: 10px !important;
         font-size: 16px !important;
     }
+    .stTextInput > div > div > input:focus, .stNumberInput > div > div > input:focus {
+        border-color: #1E88E5 !important;
+        box-shadow: 0 0 8px rgba(30, 136, 229, 0.3) !important;
+    }
+    
+    /* كروت الإحصائيات الفخمة */
+    .metric-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f1f3f5 100%);
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        border-right: 5px solid #1E88E5;
+        margin-bottom: 15px;
+    }
+    
     @media print {
         .no-print { display: none !important; }
     }
@@ -101,10 +130,11 @@ if not st.session_state.authenticated:
     st.markdown("<br><br>", unsafe_allow_html=True)
     c_login1, c_login2, c_login3 = st.columns([1, 2, 1])
     with c_login2:
-        st.markdown("<h2 style='text-align: center;'>🌾 شركة الرحمة لإدارة الأراضي</h2>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center; padding: 30px; background: white; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);'>", unsafe_allow_html=True)
+        st.markdown("<h2>🌾 شركة الرحمة لإدارة الأراضي</h2>", unsafe_allow_html=True)
         st.caption("📞 تليفون: 01019381124 | 01000108658")
-        st.subheader("🔐 يرجى إدخال كلمة السر للدخول للنظام:")
-        input_pass = st.text_input("كلمة السر:", type="password")
+        st.markdown("<hr>", unsafe_allow_html=True)
+        input_pass = st.text_input("🔐 أدخل كلمة السر للدخول للنظام:", type="password")
         if st.button("تسجيل الدخول", type="primary", use_container_width=True):
             if input_pass == PASSWORD:
                 st.session_state.authenticated = True
@@ -112,19 +142,16 @@ if not st.session_state.authenticated:
                 st.rerun()
             else:
                 st.error("❌ كلمة السر غير صحيحة، يرجى المحاولة مرة أخرى.")
+        st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
 
 # ==========================================
-# 📋 القائمة الجانبية للتطبيق
+# 📋 القائمة الجانبية (Sidebar) المحدثة والأنيقة
 # ==========================================
-st.sidebar.title("شركة الرحمة 🌾")
-st.sidebar.caption("📞 تليفون: 01019381124 | 01000108658")
-st.sidebar.write("---")
-
-if st.sidebar.button("🔒 تسجيل الخروج", type="secondary", use_container_width=True):
-    st.session_state.authenticated = False
-    st.rerun()
+st.sidebar.markdown("### 🌾 شركة الرحمة")
+st.sidebar.caption("📞 01019381124 | 01000108658")
+st.sidebar.markdown("---")
 
 app_mode = st.sidebar.radio(
     "انتقل إلى القسم:",
@@ -135,6 +162,11 @@ app_mode = st.sidebar.radio(
         "4. الموقف المالي للشركة"
     ]
 )
+
+st.sidebar.markdown("---")
+if st.sidebar.button("🔒 تسجيل الخروج", type="secondary", use_container_width=True):
+    st.session_state.authenticated = False
+    st.rerun()
 
 
 # ==========================================
@@ -215,18 +247,16 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                         col_tr1, col_tr2 = st.columns(2)
                         with col_tr1:
                             record_date = st.date_input("التاريخ", value=st.session_state.last_date)
-                            
                             exp_option = st.selectbox("نوع المصروف", ["بدون مصروف", "جراندات", "أنفار", "فطار", "مناديب", "شكاير", "آخر (اكتب يدوي)"])
                             custom_exp = st.text_input("اكتب نوع المصروف (إذا اخترت آخر)")
                             final_exp_desc = custom_exp if exp_option == "آخر (اكتب يدوي)" and custom_exp.strip() else (exp_option if exp_option != "بدون مصروف" else "بدون مصروف")
-                            
-                            exp_amount = st.number_input("قيمة المصروف (جنيه)", min_value=0.0, step=50.0)
+                            exp_amount = st.number_input("قيمة المصروف (جنيه)", min_value=0.0, step=1.0, format="%.2f")
                         
                         with col_tr2:
-                            sader_weight = st.number_input("وارد صادر (بالوزن)", min_value=0.0, step=1.0)
-                            second_weight = st.number_input("وارد درجة ثانية (بالوزن)", min_value=0.0, step=1.0)
-                            farza_weight = st.number_input("وارد فرزة (بالوزن)", min_value=0.0, step=1.0)
-                            advanced_cash = st.number_input("استلام صاحب الأرض فلوس (سلفة نقدية)", min_value=0.0, step=50.0)
+                            sader_weight = st.number_input("وارد صادر (بالوزن)", min_value=0.0, step=1.0, format="%.2f")
+                            second_weight = st.number_input("وارد درجة ثانية (بالوزن)", min_value=0.0, step=1.0, format="%.2f")
+                            farza_weight = st.number_input("وارد فرزة (بالوزن)", min_value=0.0, step=1.0, format="%.2f")
+                            advanced_cash = st.number_input("استلام صاحب الأرض فلوس (سلفة نقدية)", min_value=0.0, step=1.0, format="%.2f")
                         
                         add_trans_btn = st.form_submit_button("إضافة الحركة إلى صفحة العميل")
                         
@@ -247,49 +277,37 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             st.rerun()
 
                     st.markdown("---")
-                    st.subheader(f"📊 سجل حركات وتفاصيل أرض {selected_client}")
+                    st.subheader(f"📊 جدول سجل حركات وتفاصيل أرض {selected_client}")
                     client_records = [r for r in st.session_state.land_accounts if r["owner"] == selected_client]
                     
                     if client_records:
+                        # عرض الحركات في جدول مرتب كالأعمدة والصفوف
+                        col_h1, col_h2, col_h3, col_h4, col_h5, col_h6, col_h7, col_h8 = st.columns([1.2, 1.2, 1, 1, 1, 1, 1, 0.6])
+                        with col_h1: st.markdown("**التاريخ**")
+                        with col_h2: st.markdown("**المصروف**")
+                        with col_h3: st.markdown("**قيمة المصروف**")
+                        with col_h4: st.markdown("**صادر**")
+                        with col_h5: st.markdown("**ثانية**")
+                        with col_h6: st.markdown("**فرزة**")
+                        with col_h7: st.markdown("**سلفة**")
+                        with col_h8: st.markdown("**حذف**")
+                        st.markdown("---")
+
                         for idx, record in enumerate(client_records):
-                            with st.expander(f"📅 التاريخ: {record['date']} | صادر: {record.get('sader', 0)} | مصروف: {record.get('expense_amount', 0)} ج"):
-                                with st.form(f"edit_rec_{selected_client}_{idx}", clear_on_submit=False):
-                                    e_date = st.date_input("تاريخ الحركة", value=datetime.datetime.strptime(record['date'], "%Y-%m-%d").date(), key=f"ed_d_{selected_client}_{idx}")
-                                    e_desc = st.text_input("نوع المصروف", value=record.get('expense_desc', ''), key=f"ed_desc_{selected_client}_{idx}")
-                                    e_exp_amt = st.number_input("قيمة المصروف", value=float(record.get('expense_amount', 0.0)), min_value=0.0, key=f"ed_eamt_{selected_client}_{idx}")
-                                    
-                                    ec1, ec2, ec3 = st.columns(3)
-                                    with ec1:
-                                        e_sader = st.number_input("وارد صادر", value=float(record.get('sader', 0.0)), min_value=0.0, key=f"ed_sad_{selected_client}_{idx}")
-                                    with ec2:
-                                        e_sec = st.number_input("وارد ثانية", value=float(record.get('second', 0.0)), min_value=0.0, key=f"ed_sec_{selected_client}_{idx}")
-                                    with ec3:
-                                        e_far = st.number_input("وارد فرزة", value=float(record.get('farza', 0.0)), min_value=0.0, key=f"ed_far_{selected_client}_{idx}")
-                                    
-                                    e_adv = st.number_input("سلف نقدية أخذها", value=float(record.get('advanced_cash', 0.0)), min_value=0.0, key=f"ed_adv_{selected_client}_{idx}")
-                                    
-                                    col_btn1, col_btn2 = st.columns(2)
-                                    with col_btn1:
-                                        update_btn = st.form_submit_button("💾 تحديث وتعديل البيانات")
-                                    with col_btn2:
-                                        delete_btn = st.form_submit_button("🗑️ حذف هذه الحركة")
-                                        
-                                    if update_btn:
-                                        record['date'] = str(e_date)
-                                        record['expense_desc'] = e_desc
-                                        record['expense_amount'] = e_exp_amt
-                                        record['sader'] = e_sader
-                                        record['second'] = e_sec
-                                        record['farza'] = e_far
-                                        record['advanced_cash'] = e_adv
-                                        save_data()
-                                        st.success("تم تحديث الحركة بنجاح!")
-                                        st.rerun()
-                                    if delete_btn:
-                                        st.session_state.land_accounts.remove(record)
-                                        save_data()
-                                        st.success("تم حذف الحركة بنجاح!")
-                                        st.rerun()
+                            cols_row = st.columns([1.2, 1.2, 1, 1, 1, 1, 1, 0.6])
+                            with cols_row[0]: st.write(f"📅 {record['date']}")
+                            with cols_row[1]: st.write(f"{record.get('expense_desc', '-')}")
+                            with cols_row[2]: st.write(f"{record.get('expense_amount', 0):,.2f} ج")
+                            with cols_row[3]: st.write(f"{record.get('sader', 0):,.1f}")
+                            with cols_row[4]: st.write(f"{record.get('second', 0):,.1f}")
+                            with cols_row[5]: st.write(f"{record.get('farza', 0):,.1f}")
+                            with cols_row[6]: st.write(f"{record.get('advanced_cash', 0):,.2f} ج")
+                            with cols_row[7]:
+                                if st.button("🗑️", key=f"del_client_rec_{selected_client}_{idx}"):
+                                    st.session_state.land_accounts.remove(record)
+                                    save_data()
+                                    st.success("تم الحذف بنجاح!")
+                                    st.rerun()
                         
                         st.markdown("---")
                         st.markdown("### 🧮 تصفية الحساب النهائي:")
@@ -298,9 +316,9 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                         with st.form(f"settlement_form_{selected_client}"):
                             col_f1, col_f2 = st.columns(2)
                             with col_f1:
-                                discount_pct = st.number_input("نسبة الخصم (%)", min_value=0.0, max_value=100.0, value=float(current_client_settings.get("discount", 0.0)), step=0.5)
+                                discount_pct = st.number_input("نسبة الخصم (%)", min_value=0.0, max_value=100.0, value=float(current_client_settings.get("discount", 0.0)), step=1.0, format="%.2f")
                             with col_f2:
-                                price_per_unit = st.number_input("سعر الوحدة (جنيه)", min_value=0.0, value=float(current_client_settings.get("price", 0.0)), step=0.5)
+                                price_per_unit = st.number_input("سعر الوحدة (جنيه)", min_value=0.0, value=float(current_client_settings.get("price", 0.0)), step=1.0, format="%.2f")
                             
                             save_settings_btn = st.form_submit_button("💾 حفظ نسبة الخصم والسعر")
                             if save_settings_btn:
@@ -350,12 +368,12 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             b_exp_opt = st.selectbox("نوع المصروف", ["بدون مصروف", "جراندات", "أنفار", "فطار", "مناديب", "شكاير", "آخر (اكتب يدوي)"])
                             b_cust_exp = st.text_input("اكتب نوع المصروف المخصص")
                             b_final_desc = b_cust_exp if b_exp_opt == "آخر (اكتب يدوي)" and b_cust_exp.strip() else (b_exp_opt if b_exp_opt != "بدون مصروف" else "بدون مصروف")
-                            b_exp_amt = st.number_input("قيمة المصروف (جنيه)", min_value=0.0, step=50.0)
+                            b_exp_amt = st.number_input("قيمة المصروف (جنيه)", min_value=0.0, step=1.0, format="%.2f")
                         with c_b2:
-                            b_raw_w = st.number_input("وزن بطاطا صادر خام", min_value=0.0, step=1.0)
-                            b_disc_pct = st.number_input("نسبة الخصم (%)", min_value=0.0, max_value=100.0, value=0.0, step=0.5)
-                            b_price = st.number_input("سعر الكيلو", min_value=0.0, step=0.5)
-                            b_adv_cash = st.number_input("فلوس أخذها صاحب الأرض (سلفة)", min_value=0.0, step=50.0)
+                            b_raw_w = st.number_input("وزن بطاطا صادر خام", min_value=0.0, step=1.0, format="%.2f")
+                            b_disc_pct = st.number_input("نسبة الخصم (%)", min_value=0.0, max_value=100.0, value=0.0, step=1.0, format="%.2f")
+                            b_price = st.number_input("سعر الكيلو", min_value=0.0, step=1.0, format="%.2f")
+                            b_adv_cash = st.number_input("فلوس أخذها صاحب الأرض (سلفة)", min_value=0.0, step=1.0, format="%.2f")
 
                         calc_net_w = b_raw_w - (b_raw_w * (b_disc_pct / 100.0))
                         calc_tot_p = calc_net_w * b_price
@@ -381,48 +399,39 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             st.rerun()
 
                     st.markdown("---")
-                    st.subheader(f"📋 سجل حركات صادر البوكسة: {selected_client}")
+                    st.subheader(f"📋 جدول حركات صادر البوكسة: {selected_client}")
                     box_records = [r for r in st.session_state.land_accounts if r["owner"] == selected_client and "raw_weight" in r]
 
                     if box_records:
+                        # جدول لعرض صادر البوكسة
+                        col_bh1, col_bh2, col_bh3, col_bh4, col_bh5, col_bh6, col_bh7, col_bh8, col_bh9 = st.columns([1.1, 1.1, 1, 1, 1, 1, 1, 1, 0.6])
+                        with col_bh1: st.markdown("**التاريخ**")
+                        with col_bh2: st.markdown("**المصروف**")
+                        with col_bh3: st.markdown("**قيمة المصروف**")
+                        with col_bh4: st.markdown("**خام**")
+                        with col_bh5: st.markdown("**الخصم %**")
+                        with col_bh6: st.markdown("**الصافي**")
+                        with col_bh7: st.markdown("**السعر**")
+                        with col_bh8: st.markdown("**السلفة**")
+                        with col_bh9: st.markdown("**حذف**")
+                        st.markdown("---")
+
                         for b_idx, b_rec in enumerate(box_records):
-                            with st.expander(f"📅 التاريخ: {b_rec['date']} | الخام: {b_rec.get('raw_weight', 0)} | الصافي: {b_rec.get('net_weight', 0)}"):
-                                with st.form(f"edit_box_{selected_client}_{b_idx}", clear_on_submit=False):
-                                    eb_date = st.date_input("التاريخ", value=datetime.datetime.strptime(b_rec['date'], "%Y-%m-%d").date(), key=f"ebd_{selected_client}_{b_idx}")
-                                    eb_desc = st.text_input("نوع المصروف", value=b_rec.get('expense_desc', ''), key=f"eb_desc_{selected_client}_{b_idx}")
-                                    eb_exp = st.number_input("قيمة المصروف", value=float(b_rec.get('expense_amount', 0.0)), min_value=0.0, key=f"eb_exp_{selected_client}_{b_idx}")
-                                    
-                                    eb_raw = st.number_input("وزن خام", value=float(b_rec.get('raw_weight', 0.0)), min_value=0.0, key=f"eb_raw_{selected_client}_{b_idx}")
-                                    eb_disc = st.number_input("نسبة الخصم %", value=float(b_rec.get('discount_pct', 0.0)), min_value=0.0, max_value=100.0, key=f"eb_disc_{selected_client}_{b_idx}")
-                                    eb_prc = st.number_input("السعر", value=float(b_rec.get('price', 0.0)), min_value=0.0, key=f"eb_prc_{selected_client}_{b_idx}")
-                                    eb_adv = st.number_input("فلوس أخذها", value=float(b_rec.get('advanced_cash', 0.0)), min_value=0.0, key=f"eb_adv_{selected_client}_{b_idx}")
-
-                                    col_b1, col_b2 = st.columns(2)
-                                    with col_b1:
-                                        upd_b = st.form_submit_button("💾 تحديث الحركة")
-                                    with col_b2:
-                                        del_b = st.form_submit_button("🗑️ حذف الحركة")
-
-                                    if upd_b:
-                                        net_w_calc = eb_raw - (eb_raw * (eb_disc / 100.0))
-                                        tot_p_calc = net_w_calc * eb_prc
-                                        b_rec['date'] = str(eb_date)
-                                        b_rec['expense_desc'] = eb_desc
-                                        b_rec['expense_amount'] = eb_exp
-                                        b_rec['raw_weight'] = eb_raw
-                                        b_rec['discount_pct'] = eb_disc
-                                        b_rec['net_weight'] = net_w_calc
-                                        b_rec['price'] = eb_prc
-                                        b_rec['total_price'] = tot_p_calc
-                                        b_rec['advanced_cash'] = eb_adv
-                                        save_data()
-                                        st.success("تم التحديث بنجاح!")
-                                        st.rerun()
-                                    if del_b:
-                                        st.session_state.land_accounts.remove(b_rec)
-                                        save_data()
-                                        st.success("تم الحذف بنجاح!")
-                                        st.rerun()
+                            cols_brow = st.columns([1.1, 1.1, 1, 1, 1, 1, 1, 1, 0.6])
+                            with cols_brow[0]: st.write(f"📅 {b_rec['date']}")
+                            with cols_brow[1]: st.write(f"{b_rec.get('expense_desc', '-')}")
+                            with cols_brow[2]: st.write(f"{b_rec.get('expense_amount', 0):,.2f} ج")
+                            with cols_brow[3]: st.write(f"{b_rec.get('raw_weight', 0):,.1f}")
+                            with cols_brow[4]: st.write(f"{b_rec.get('discount_pct', 0)}%")
+                            with cols_brow[5]: st.write(f"**{b_rec.get('net_weight', 0):,.1f}**")
+                            with cols_brow[6]: st.write(f"{b_rec.get('price', 0):,.2f}")
+                            with cols_brow[7]: st.write(f"{b_rec.get('advanced_cash', 0):,.2f} ج")
+                            with cols_brow[8]:
+                                if st.button("🗑️", key=f"del_box_rec_{selected_client}_{b_idx}"):
+                                    st.session_state.land_accounts.remove(b_rec)
+                                    save_data()
+                                    st.success("تم الحذف بنجاح!")
+                                    st.rerun()
 
                         st.markdown("---")
                         tot_exp_box = sum(r.get('expense_amount', 0) for r in box_records)
@@ -551,12 +560,12 @@ elif app_mode == "2. التوريد للمحطات":
                     with c_st_a:
                         sup_date = st.date_input("تاريخ التوريد", value=st.session_state.last_date)
                         car_number = st.text_input("رقم السيارة")
-                        raw_weight = st.number_input("الوزن الخام", min_value=0.0, step=1.0)
-                        paid_today = st.number_input("المبلغ الذي دفعته المحطة اليوم (إن وجدت)", min_value=0.0, step=100.0, value=0.0)
+                        raw_weight = st.number_input("الوزن الخام", min_value=0.0, step=1.0, format="%.2f")
+                        paid_today = st.number_input("المبلغ الذي دفعته المحطة اليوم (إن وجدت)", min_value=0.0, step=1.0, value=0.0, format="%.2f")
                     with c_st_b:
                         disc_type = st.radio("نوع الخصم", ["خصم بالنسبة (%)", "خصم بالكيلو"], horizontal=True)
-                        disc_val = st.number_input("قيمة الخصم", min_value=0.0, step=0.5)
-                        price_st = st.number_input("السعر", min_value=0.0, step=0.5)
+                        disc_val = st.number_input("قيمة الخصم", min_value=0.0, step=1.0, format="%.2f")
+                        price_st = st.number_input("السعر", min_value=0.0, step=1.0, format="%.2f")
                     
                     if disc_type == "خصم بالنسبة (%)":
                         calc_net_w = raw_weight - (raw_weight * (disc_val / 100.0))
@@ -588,14 +597,35 @@ elif app_mode == "2. التوريد للمحطات":
 
                 st.markdown("---")
                 if st_records:
-                    st.subheader(f"📋 سجل حركات وتوريدات محطة: {selected_station}")
+                    st.subheader(f"📋 جدول حركات وتوريدات محطة: {selected_station}")
+                    
+                    # جدول عريض ومنسق كالأعمدة والصفوف
+                    c_h1, c_h2, c_h3, c_h4, c_h5, c_h6, c_h7, c_h8, c_h9 = st.columns([1.2, 1, 1, 1, 1, 0.8, 1.2, 1.2, 0.6])
+                    with c_h1: st.markdown("**التاريخ**")
+                    with c_h2: st.markdown("**رقم السيارة**")
+                    with c_h3: st.markdown("**الوزن الخام**")
+                    with c_h4: st.markdown("**الخصم**")
+                    with c_h5: st.markdown("**الصافي**")
+                    with c_h6: st.markdown("**السعر**")
+                    with c_h7: st.markdown("**الإجمالي**")
+                    with c_h8: st.markdown("**المدفوع**")
+                    with c_h9: st.markdown("**حذف**")
+                    st.markdown("---")
+
                     for idx_st, s_rec in enumerate(st_records):
-                        cols_st_row = st.columns([7, 1])
-                        with cols_st_row[0]:
-                            d_type_lbl = s_rec.get('disc_type', 'نسبة (%)')
-                            st.write(f"📅 **التاريخ:** {s_rec['date']} | 🚗 **السيارة:** {s_rec.get('car', '')} | **خام:** {s_rec.get('weight', 0)} | **خصم ({d_type_lbl}):** {s_rec.get('discount', 0)} | **صافي:** {s_rec.get('net_weight', 0):,.2f} | **السعر:** {s_rec.get('price', 0)} ج | **الإجمالي:** {s_rec.get('total_money', 0):,.2f} ج | **المدفوع:** {s_rec.get('paid_amount', 0):,.2f} ج")
-                        with cols_st_row[1]:
-                            if st.button("🗑️ حذف", key=f"del_st_rec_{selected_station}_{idx_st}"):
+                        cols_row = st.columns([1.2, 1, 1, 1, 1, 0.8, 1.2, 1.2, 0.6])
+                        d_type_lbl = "%" if s_rec.get('disc_type') == "خصم بالنسبة (%)" else "كجم"
+                        
+                        with cols_row[0]: st.write(f"📅 {s_rec['date']}")
+                        with cols_row[1]: st.write(f"🚗 {s_rec.get('car', '-')}")
+                        with cols_row[2]: st.write(f"{s_rec.get('weight', 0):,.1f}")
+                        with cols_row[3]: st.write(f"{s_rec.get('discount', 0)} {d_type_lbl}")
+                        with cols_row[4]: st.write(f"**{s_rec.get('net_weight', 0):,.1f}**")
+                        with cols_row[5]: st.write(f"{s_rec.get('price', 0):,.2f}")
+                        with cols_row[6]: st.write(f"**{s_rec.get('total_money', 0):,.2f} ج**")
+                        with cols_row[7]: st.write(f"{s_rec.get('paid_amount', 0):,.2f} ج")
+                        with cols_row[8]:
+                            if st.button("🗑️", key=f"del_st_tbl_{selected_station}_{idx_st}"):
                                 st.session_state.station_supplies.remove(s_rec)
                                 save_data()
                                 st.success("تم الحذف بنجاح!")
@@ -620,7 +650,7 @@ elif app_mode == "3. صافي أرباحي من الأرض":
         owner_recs = [r for r in st.session_state.land_accounts if r["owner"] == selected_prof_owner]
         
         st.markdown("---")
-        st.subheader(f"🌾 أوزان البطاطا المسجلة للعميل: {selected_prof_owner} (واحدة واحدة)")
+        st.subheader(f"🌾 جدول أوزان البطاطا المسجلة للعميل: {selected_prof_owner}")
 
         if owner_recs:
             saved_profits_dict = st.session_state.saved_profits.get(selected_prof_owner, {})
@@ -630,8 +660,16 @@ elif app_mode == "3. صافي أرباحي من الأرض":
             total_advanced_p = sum(r.get("advanced_cash", 0) for r in owner_recs)
 
             with st.form(f"detailed_profit_form_{selected_prof_owner}"):
-                st.markdown("##### قم بتحديد سعر البيع لكل وزنة على حدة:")
+                st.markdown("##### قم بتحديد سعر البيع لكل وزنة على حدة في الجدول أدناه:")
                 
+                # جدول أرباح الأراضي
+                cp_h1, cp_h2, cp_h3, cp_h4 = st.columns([1.5, 1.5, 2, 2])
+                with cp_h1: st.markdown("**التاريخ**")
+                with cp_h2: st.markdown("**نوع الوِزنة**")
+                with cp_h3: st.markdown("**الوزن**")
+                with cp_h4: st.markdown("**سعر البيع (أنت تكتبه)**")
+                st.markdown("---")
+
                 for idx, rec in enumerate(owner_recs):
                     rec_date = rec.get("date", "بدون تاريخ")
                     sad_w = rec.get("sader", 0.0)
@@ -640,24 +678,39 @@ elif app_mode == "3. صافي أرباحي من الأرض":
                     raw_b_w = rec.get("raw_weight", 0.0)
                     net_b_w = rec.get("net_weight", 0.0)
 
-                    st.markdown(f"**الحركة #{idx + 1}** (التاريخ: {rec_date})")
-                    
-                    cols_p = st.columns(3)
                     if sad_w > 0:
-                        with cols_p[0]:
-                            p_sad = st.number_input(f"سعر بيع صادر (وزن: {sad_w})", min_value=0.0, value=float(saved_profits_dict.get(f"sad_{idx}", 0.0)), step=0.5, key=f"p_sad_{selected_prof_owner}_{idx}")
+                        cols_cp = st.columns([1.5, 1.5, 2, 2])
+                        with cols_cp[0]: st.write(f"📅 {rec_date}")
+                        with cols_cp[1]: st.write("وارد صادر")
+                        with cols_cp[2]: st.write(f"{sad_w:,.1f} كجم")
+                        with cols_cp[3]:
+                            st.number_input(f"سعر صادر #{idx}", min_value=0.0, value=float(saved_profits_dict.get(f"sad_{idx}", 0.0)), step=1.0, format="%.2f", key=f"p_sad_{selected_prof_owner}_{idx}", label_visibility="collapsed")
+                    
                     if sec_w > 0:
-                        with cols_p[1]:
-                            p_sec = st.number_input(f"سعر بيع ثانية (وزن: {sec_w})", min_value=0.0, value=float(saved_profits_dict.get(f"sec_{idx}", 0.0)), step=0.5, key=f"p_sec_{selected_prof_owner}_{idx}")
+                        cols_cp = st.columns([1.5, 1.5, 2, 2])
+                        with cols_cp[0]: st.write(f"📅 {rec_date}")
+                        with cols_cp[1]: st.write("درجة ثانية")
+                        with cols_cp[2]: st.write(f"{sec_w:,.1f} كجم")
+                        with cols_cp[3]:
+                            st.number_input(f"سعر ثانية #{idx}", min_value=0.0, value=float(saved_profits_dict.get(f"sec_{idx}", 0.0)), step=1.0, format="%.2f", key=f"p_sec_{selected_prof_owner}_{idx}", label_visibility="collapsed")
+
                     if far_w > 0:
-                        with cols_p[2]:
-                            p_far = st.number_input(f"سعر بيع فرزة (وزن: {far_w})", min_value=0.0, value=float(saved_profits_dict.get(f"far_{idx}", 0.0)), step=0.5, key=f"p_far_{selected_prof_owner}_{idx}")
+                        cols_cp = st.columns([1.5, 1.5, 2, 2])
+                        with cols_cp[0]: st.write(f"📅 {rec_date}")
+                        with cols_cp[1]: st.write("فرزة")
+                        with cols_cp[2]: st.write(f"{far_w:,.1f} كجم")
+                        with cols_cp[3]:
+                            st.number_input(f"سعر فرزة #{idx}", min_value=0.0, value=float(saved_profits_dict.get(f"far_{idx}", 0.0)), step=1.0, format="%.2f", key=f"p_far_{selected_prof_owner}_{idx}", label_visibility="collapsed")
+
                     if raw_b_w > 0:
-                        with cols_p[0]:
-                            p_box = st.number_input(f"سعر بيع صادر بوكسة (صافي: {net_b_w:,.1f})", min_value=0.0, value=float(saved_profits_dict.get(f"box_{idx}", 0.0)), step=0.5, key=f"p_box_{selected_prof_owner}_{idx}")
+                        cols_cp = st.columns([1.5, 1.5, 2, 2])
+                        with cols_cp[0]: st.write(f"📅 {rec_date}")
+                        with cols_cp[1]: st.write("صادر بوكسة (صافي)")
+                        with cols_cp[2]: st.write(f"{net_b_w:,.1f} كجم")
+                        with cols_cp[3]:
+                            st.number_input(f"سعر بوكسة #{idx}", min_value=0.0, value=float(saved_profits_dict.get(f"box_{idx}", 0.0)), step=1.0, format="%.2f", key=f"p_box_{selected_prof_owner}_{idx}", label_visibility="collapsed")
 
-                    st.markdown("---")
-
+                st.markdown("---")
                 save_all_prices = st.form_submit_button("💾 حفظ أسعار البيع وحساب صافي الربح / الخسارة النهائي")
                 
                 if save_all_prices:
@@ -768,15 +821,18 @@ elif app_mode == "4. الموقف المالي للشركة":
 
     col_fin1, col_fin2 = st.columns(2)
     with col_fin1:
-        st.metric(
-            label="🏭 إجمالي الفلوس اللي ليك بره (عند المحطات)", 
-            value=f"{total_all_stations_remaining:,.2f} جنيه",
-            delta="المستحقات لك"
-        )
+        st.markdown(f"""
+        <div class="metric-card">
+            <h3>🏭 إجمالي الفلوس اللي ليك بره</h3>
+            <h2 style="color: #1E88E5;">{total_all_stations_remaining:,.2f} جنيه</h2>
+            <p>مستحقات لك لدى المحطات</p>
+        </div>
+        """, unsafe_allow_html=True)
     with col_fin2:
-        st.metric(
-            label="🌾 إجمالي الفلوس اللي عليك بره (باقي للعملاء)", 
-            value=f"{total_all_clients_remaining:,.2f} جنيه",
-            delta="المستحقات للعملاء",
-            delta_color="inverse"
-        )
+        st.markdown(f"""
+        <div class="metric-card" style="border-right-color: #e03131;">
+            <h3>🌾 إجمالي الفلوس اللي عليك بره</h3>
+            <h2 style="color: #e03131;">{total_all_clients_remaining:,.2f} جنيه</h2>
+            <p>مستحقات للعملاء (باقي له)</p>
+        </div>
+        """, unsafe_allow_html=True)
