@@ -190,13 +190,17 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                     
     with tab_client_page:
         if st.session_state.lands:
-            land_list = ["-- اختر اسم العميل --"] + [l["owner"] for l in st.session_state.lands]
+            # إعداد خيارات قائمة العملاء مع نوع كل عميل بين قوسين
+            client_display_map = {f"{l['owner']} ({l.get('type', 'بطاطا تحت الشرب')})": l["owner"] for l in st.session_state.lands}
+            display_list = ["-- اختر اسم العميل --"] + list(client_display_map.keys())
             
             col_sel, col_del = st.columns([3, 1])
             with col_sel:
-                selected_client = st.selectbox("اختر اسم العميل لفتح صفحته الخاصة:", land_list, index=0)
+                selected_display = st.selectbox("اختر اسم العميل لفتح صفحته الخاصة:", display_list, index=0)
             
-            if selected_client and selected_client != "-- اختر اسم العميل --":
+            if selected_display and selected_display != "-- اختر اسم العميل --":
+                selected_client = client_display_map[selected_display]
+                
                 with col_del:
                     st.write("")
                     st.write("")
@@ -220,7 +224,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                     st.write(f"📱 **رقم التليفون:** {client_info['phone']} | 📍 **موقع الأرض:** {client_info['location']}")
                     
                     # ---------------------------------------------------------
-                    # النوع الأول: بطاطا تحت الشرب (بدون خصم مصاريف من العميل)
+                    # النوع الأول: بطاطا تحت الشرب
                     # ---------------------------------------------------------
                     if client_category == "بطاطا تحت الشرب":
                         with st.form(f"client_trans_{selected_client}", clear_on_submit=True):
@@ -354,7 +358,6 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             total_money_value = net_weight * active_price
                             total_advanced = sum(r.get("advanced_cash", 0) for r in client_records)
                             
-                            # العميل تحت الشرب ملوش دعوة بالمصاريف (يخصم منه السُلف فقط)
                             remaining_balance = total_money_value - total_advanced
                             
                             st.markdown("### 📜 كشف حساب نهائي:")
@@ -374,7 +377,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             st.info("لا توجد حركات مسجلة لهذا العميل حتى الآن.")
 
                     # ---------------------------------------------------------
-                    # النوع الثاني: بطاطا صادر في البوكسة (يخصم منه المصاريف + السُلف)
+                    # النوع الثاني: بطاطا صادر في البوكسة (إمكانية الاختيار بين الخصم بالنسبة أو بالكيلو)
                     # ---------------------------------------------------------
                     else:
                         with st.form(f"box_client_trans_{selected_client}", clear_on_submit=True):
@@ -387,18 +390,24 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                 b_cust_exp = st.text_input("اكتب نوع المصروف المخصص")
                                 b_final_desc = b_cust_exp if b_exp_opt == "آخر (اكتب يدوي)" and b_cust_exp.strip() else (b_exp_opt if b_exp_opt != "بدون مصروف" else "بدون مصروف")
                                 b_exp_in = st.text_input("قيمة المصروف (جنيه)", value="0")
+                                b_adv_in = st.text_input("فلوس أخذها صاحب الأرض (سلفة)", value="0")
                             with c_b2:
                                 b_raw_in = st.text_input("وزن بطاطا صادر خام", value="0")
-                                b_disc_in = st.text_input("نسبة الخصم (%)", value="0")
+                                b_disc_type = st.radio("نوع الخصم", ["خصم بالنسبة (%)", "خصم بالكيلو"], horizontal=True, key=f"b_dtype_{selected_client}")
+                                b_disc_in = st.text_input("قيمة الخصم", value="0")
                                 b_price_in = st.text_input("سعر الكيلو", value="0")
-                                b_adv_in = st.text_input("فلوس أخذها صاحب الأرض (سلفة)", value="0")
 
                             add_box_btn = st.form_submit_button("حفظ حركة الصادر في البوكسة")
                             if add_box_btn:
                                 raw_w = clean_float(b_raw_in)
-                                disc_p = clean_float(b_disc_in)
+                                disc_v = clean_float(b_disc_in)
                                 prc = clean_float(b_price_in)
-                                calc_net = raw_w - (raw_w * (disc_p / 100.0))
+                                
+                                if b_disc_type == "خصم بالنسبة (%)":
+                                    calc_net = raw_w - (raw_w * (disc_v / 100.0))
+                                else:
+                                    calc_net = max(0.0, raw_w - disc_v)
+                                    
                                 calc_tot = calc_net * prc
                                 
                                 st.session_state.last_date = b_date
@@ -408,7 +417,8 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                     "expense_desc": b_final_desc,
                                     "expense_amount": clean_float(b_exp_in),
                                     "raw_weight": raw_w,
-                                    "discount_pct": disc_p,
+                                    "disc_type": b_disc_type,
+                                    "discount_pct": disc_v,
                                     "net_weight": calc_net,
                                     "price": prc,
                                     "total_price": calc_tot,
@@ -428,7 +438,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             with col_bh2: st.markdown("**المصروف**")
                             with col_bh3: st.markdown("**المبلغ**")
                             with col_bh4: st.markdown("**خام**")
-                            with col_bh5: st.markdown("**الخصم %**")
+                            with col_bh5: st.markdown("**الخصم**")
                             with col_bh6: st.markdown("**الصافي**")
                             with col_bh7: st.markdown("**السعر**")
                             with col_bh8: st.markdown("**السلفة**")
@@ -437,11 +447,13 @@ if app_mode == "1. حسابات الأراضي والعملاء":
 
                             for b_idx, b_rec in enumerate(box_records):
                                 cols_brow = st.columns([1.1, 1.1, 1, 1, 1, 1, 1, 1, 1])
+                                d_lbl = "%" if b_rec.get('disc_type') == "خصم بالنسبة (%)" else "كجم"
+                                
                                 with cols_brow[0]: st.write(f"📅 {b_rec['date']}")
                                 with cols_brow[1]: st.write(f"{b_rec.get('expense_desc', '-')}")
                                 with cols_brow[2]: st.write(f"{b_rec.get('expense_amount', 0):,.2f} ج")
                                 with cols_brow[3]: st.write(f"{b_rec.get('raw_weight', 0):,.1f}")
-                                with cols_brow[4]: st.write(f"{b_rec.get('discount_pct', 0)}%")
+                                with cols_brow[4]: st.write(f"{b_rec.get('discount_pct', 0)} {d_lbl}")
                                 with cols_brow[5]: st.write(f"**{b_rec.get('net_weight', 0):,.1f}**")
                                 with cols_brow[6]: st.write(f"{b_rec.get('price', 0):,.2f}")
                                 with cols_brow[7]: st.write(f"{b_rec.get('advanced_cash', 0):,.2f} ج")
@@ -465,22 +477,29 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                         eb_desc = st.text_input("المصروف", value=b_rec.get('expense_desc', ''))
                                         eb_exp = st.text_input("قيمة المصروف", value=str(b_rec.get('expense_amount', 0)))
                                         eb_raw = st.text_input("الوزن الخام", value=str(b_rec.get('raw_weight', 0)))
-                                        eb_disc = st.text_input("نسبة الخصم %", value=str(b_rec.get('discount_pct', 0)))
+                                        eb_disc_type = st.radio("نوع الخصم", ["خصم بالنسبة (%)", "خصم بالكيلو"], index=0 if b_rec.get('disc_type') == "خصم بالنسبة (%)" else 1)
+                                        eb_disc = st.text_input("قيمة الخصم", value=str(b_rec.get('discount_pct', 0)))
                                         eb_prc = st.text_input("السعر", value=str(b_rec.get('price', 0)))
                                         eb_adv = st.text_input("السلفة", value=str(b_rec.get('advanced_cash', 0)))
 
                                         if st.form_submit_button("💾 حفظ التعديل"):
                                             r_w = clean_float(eb_raw)
-                                            d_p = clean_float(eb_disc)
+                                            d_v = clean_float(eb_disc)
                                             p_c = clean_float(eb_prc)
-                                            c_n = r_w - (r_w * (d_p / 100.0))
+                                            
+                                            if eb_disc_type == "خصم بالنسبة (%)":
+                                                c_n = r_w - (r_w * (d_v / 100.0))
+                                            else:
+                                                c_n = max(0.0, r_w - d_v)
+                                                
                                             c_t = c_n * p_c
 
                                             b_rec['date'] = str(eb_date)
                                             b_rec['expense_desc'] = eb_desc
                                             b_rec['expense_amount'] = clean_float(eb_exp)
                                             b_rec['raw_weight'] = r_w
-                                            b_rec['discount_pct'] = d_p
+                                            b_rec['disc_type'] = eb_disc_type
+                                            b_rec['discount_pct'] = d_v
                                             b_rec['net_weight'] = c_n
                                             b_rec['price'] = p_c
                                             b_rec['total_price'] = c_t
@@ -497,7 +516,6 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             tot_price_box = sum(r.get('total_price', 0) for r in box_records)
                             tot_adv_box = sum(r.get('advanced_cash', 0) for r in box_records)
                             
-                            # لعميل البوكسة: يخصم المصاريف + السُلف
                             final_box_rem = tot_price_box - (tot_exp_box + tot_adv_box)
 
                             st.info(f"""
@@ -725,10 +743,13 @@ elif app_mode == "3. صافي أرباحي من الأرض":
     st.caption("📞 تليفون: 01019381124 | 01000108658")
     
     if st.session_state.lands:
-        land_list = ["-- اختر اسم العميل --"] + [l["owner"] for l in st.session_state.lands]
-        selected_prof_owner = st.selectbox("ابحث واختار العميل لعرض وتحديد أسعار بيع أوزان البطاطا:", land_list, index=0)
+        client_display_map_p = {f"{l['owner']} ({l.get('type', 'بطاطا تحت الشرب')})": l["owner"] for l in st.session_state.lands}
+        display_list_p = ["-- اختر اسم العميل --"] + list(client_display_map_p.keys())
         
-        if selected_prof_owner and selected_prof_owner != "-- اختر اسم العميل --":
+        selected_display_p = st.selectbox("ابحث واختار العميل لعرض وتحديد أسعار بيع أوزان البطاطا:", display_list_p, index=0)
+        
+        if selected_display_p and selected_display_p != "-- اختر اسم العميل --":
+            selected_prof_owner = client_display_map_p[selected_display_p]
             owner_recs = [r for r in st.session_state.land_accounts if r["owner"] == selected_prof_owner]
             
             st.markdown("---")
