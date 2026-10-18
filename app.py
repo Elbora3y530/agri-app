@@ -216,7 +216,6 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                         with col_tr1:
                             record_date = st.date_input("التاريخ", value=st.session_state.last_date)
                             
-                            # قائمة مصروفات مع خيار إدخال يدوي
                             exp_option = st.selectbox("نوع المصروف", ["بدون مصروف", "جراندات", "أنفار", "فطار", "مناديب", "شكاير", "آخر (اكتب يدوي)"])
                             custom_exp = st.text_input("اكتب نوع المصروف (إذا اخترت آخر)")
                             final_exp_desc = custom_exp if exp_option == "آخر (اكتب يدوي)" and custom_exp.strip() else (exp_option if exp_option != "بدون مصروف" else "بدون مصروف")
@@ -523,7 +522,6 @@ elif app_mode == "2. التوريد للمحطات":
                 st.header(f"🏭 الصفحة الخاصة بالمحطة: {selected_station}")
                 st.write(f"📱 **رقم تليفون المحطة:** {st_info['phone']}")
                 
-                # حساب المجاميع أولاً لرفع خانة الفلوس التي دفعتها المحطة للأعلى بجانب الباقي
                 st_records = [s for s in st.session_state.station_supplies if s["station"] == selected_station]
                 total_raw_w = sum(s["weight"] for s in st_records)
                 total_net_w = sum(s["net_weight"] for s in st_records)
@@ -648,19 +646,15 @@ elif app_mode == "3. صافي أرباحي من الأرض":
                     if sad_w > 0:
                         with cols_p[0]:
                             p_sad = st.number_input(f"سعر بيع صادر (وزن: {sad_w})", min_value=0.0, value=float(saved_profits_dict.get(f"sad_{idx}", 0.0)), step=0.5, key=f"p_sad_{selected_prof_owner}_{idx}")
-                            total_sales_revenue += sad_w * p_sad
                     if sec_w > 0:
                         with cols_p[1]:
                             p_sec = st.number_input(f"سعر بيع ثانية (وزن: {sec_w})", min_value=0.0, value=float(saved_profits_dict.get(f"sec_{idx}", 0.0)), step=0.5, key=f"p_sec_{selected_prof_owner}_{idx}")
-                            total_sales_revenue += sec_w * p_sec
                     if far_w > 0:
                         with cols_p[2]:
                             p_far = st.number_input(f"سعر بيع فرزة (وزن: {far_w})", min_value=0.0, value=float(saved_profits_dict.get(f"far_{idx}", 0.0)), step=0.5, key=f"p_far_{selected_prof_owner}_{idx}")
-                            total_sales_revenue += far_w * p_far
                     if raw_b_w > 0:
                         with cols_p[0]:
                             p_box = st.number_input(f"سعر بيع صادر بوكسة (صافي: {net_b_w:,.1f})", min_value=0.0, value=float(saved_profits_dict.get(f"box_{idx}", 0.0)), step=0.5, key=f"p_box_{selected_prof_owner}_{idx}")
-                            total_sales_revenue += net_b_w * p_box
 
                     st.markdown("---")
 
@@ -683,7 +677,6 @@ elif app_mode == "3. صافي أرباحي من الأرض":
                     st.success("تم حفظ أسعار البيع والنتائج بنجاح!")
                     st.rerun()
 
-            # حساب إجمالي قيمة البيع بناءً على الأسعار المحفوظة
             final_sales_rev = 0.0
             for idx, rec in enumerate(owner_recs):
                 saved_item_prices = saved_profits_dict
@@ -733,7 +726,6 @@ elif app_mode == "4. الموقف المالي للشركة":
     st.markdown("متابعة لحظية لإجمالي الأموال التي لك لدى المحطات، والمبالغ المستحقة للعملاء (الباقي له).")
     st.markdown("---")
     
-    # 1. إجمالي الفلوس اللي ليك بره عند المحطات
     total_all_stations_remaining = 0.0
     for st_obj in st.session_state.stations:
         st_name = st_obj["name"]
@@ -743,7 +735,6 @@ elif app_mode == "4. الموقف المالي للشركة":
             t_paid = sum(s["paid_amount"] for s in st_recs)
             total_all_stations_remaining += (t_money - t_paid)
 
-    # 2. إجمالي الفلوس اللي عليك لكل العملاء باسم (باقي له)
     total_all_clients_remaining = 0.0
     for land_obj in st.session_state.lands:
         c_name = land_obj["owner"]
