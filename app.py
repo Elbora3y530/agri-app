@@ -1,22 +1,67 @@
+# -*- coding: utf-8 -*-
 import streamlit as st
+import pandas as pd
+import datetime
 import json
 import os
-import pandas as pd
 
-# إعدادات الصفحة والتصميم
+# ==========================================
+# 🔐 إعدادات كلمة السر وملف الحفظ الدائم
+# ==========================================
+PASSWORD = "332007"
+DATA_FILE = "agri_data.json"
+
+# وظيفة لحفظ البيانات بصفة مستمرة ودائمة
+def save_data():
+    data = {
+        "lands": st.session_state.lands,
+        "land_accounts": st.session_state.land_accounts,
+        "stations": st.session_state.stations,
+        "station_supplies": st.session_state.station_supplies,
+        "saved_profits": st.session_state.saved_profits,
+        "client_settings": st.session_state.client_settings,
+        "last_date": str(st.session_state.last_date)
+    }
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
+# وظيفة لتحميل البيانات المسجلة مسبقاً
+def load_data():
+    if os.path.exists(DATA_FILE):
+        try:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                st.session_state.lands = data.get("lands", [])
+                st.session_state.land_accounts = data.get("land_accounts", [])
+                st.session_state.stations = data.get("stations", [])
+                st.session_state.station_supplies = data.get("station_supplies", [])
+                st.session_state.saved_profits = data.get("saved_profits", {})
+                st.session_state.client_settings = data.get("client_settings", {})
+                
+                last_d_str = data.get("last_date", str(datetime.date.today()))
+                try:
+                    st.session_state.last_date = datetime.datetime.strptime(last_d_str, "%Y-%m-%d").date()
+                except Exception:
+                    st.session_state.last_date = datetime.date.today()
+        except Exception:
+            pass
+
+# ضبط إعدادات الصفحة
 st.set_page_config(
-    page_title="شركة الرحمة لإدارة الأراضي",
-    page_icon="🌱",
+    page_title="شركة الرحمة - نظام إدارة الأراضي والمحاصيل",
+    page_icon="🌾",
     layout="wide"
 )
 
-# تطبيق تنسيقات CSS لتحسين الإدخال وتحديد المربع النشط باللون الأزرق
+# تطبيق تنسيقات CSS الاحترافية والمظهر الأنيق
 st.markdown("""
     <style>
+    /* تحديد المربع النشط باللون الأزرق الجذاب */
     div[data-baseweb="input"] input:focus, div[data-baseweb="select"] input:focus {
         border-color: #1E88E5 !important;
-        box-shadow: 0 0 8px rgba(30, 136, 229, 0.5) !important;
+        box-shadow: 0 0 10px rgba(30, 136, 229, 0.4) !important;
     }
+    /* تحسين شكل حقول الإدخال لتكون مريحة وعصرية */
     .stTextInput > div > div > input, .stNumberInput > div > div > input {
         border-radius: 8px !important;
         font-size: 16px !important;
@@ -27,416 +72,550 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-DATA_FILE = "agri_data.json"
-
-def load_data():
-    if os.path.exists(DATA_FILE):
-        try:
-            with open(DATA_FILE, "r", encoding="utf-8") as f:
-                content = json.load(f)
-                if isinstance(content, dict):
-                    if "lands" not in content:
-                        content["lands"] = {}
-                    if "stations" not in content:
-                        content["stations"] = {}
-                    return content
-        except Exception:
-            pass
-    return {"lands": {}, "stations": {}}
-
-def save_data(data):
-    try:
-        with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-    except Exception:
-        pass
-
-if "data" not in st.session_state:
-    st.session_state.data = load_data()
-
-data = st.session_state.data
-
-# ضمان وجود الهياكل الأساسية
-if "lands" not in data or not isinstance(data["lands"], dict):
-    data["lands"] = {}
-if "stations" not in data or not isinstance(data["stations"], dict):
-    data["stations"] = {}
-
-# الشاشة الرئيسية والعنوان مع الأرقام الصحيحة
-st.title("🌱 شركة الرحمة لإدارة الأراضي")
-st.caption("📞 تليفون: 01019381124 | 01000108658")
-
-# تسجيل الدخول بكلمة السر 332007
+# تهيئة Session State
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
+if "lands" not in st.session_state:
+    st.session_state.lands = []
+if "land_accounts" not in st.session_state:
+    st.session_state.land_accounts = []
+if "stations" not in st.session_state:
+    st.session_state.stations = []
+if "station_supplies" not in st.session_state:
+    st.session_state.station_supplies = []
+if "saved_profits" not in st.session_state:
+    st.session_state.saved_profits = {}
+if "client_settings" not in st.session_state:
+    st.session_state.client_settings = {}
+if "last_date" not in st.session_state:
+    st.session_state.last_date = datetime.date.today()
 
+# تحميل البيانات عند بداية التشغيل
+if "data_loaded" not in st.session_state:
+    load_data()
+    st.session_state.data_loaded = True
+
+
+# ==========================================
+# 🔒 شاشة تسجيل الدخول بكلمة السر
+# ==========================================
 if not st.session_state.authenticated:
-    with st.form("login_form"):
-        st.subheader("🔒 يرجى إدخال كلمة السر للدخول للنظام")
-        pwd = st.text_input("كلمة السر", type="password")
-        btn = st.form_submit_button("تسجيل الدخول")
-        if btn:
-            if pwd == "332007":
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    c_login1, c_login2, c_login3 = st.columns([1, 2, 1])
+    with c_login2:
+        st.markdown("<h2 style='text-align: center;'>🌾 شركة الرحمة لإدارة الأراضي</h2>", unsafe_allow_html=True)
+        st.caption("📞 تليفون: 01019381124 | 01000108658")
+        st.subheader("🔐 يرجى إدخال كلمة السر للدخول للنظام:")
+        input_pass = st.text_input("كلمة السر:", type="password")
+        if st.button("تسجيل الدخول", type="primary", use_container_width=True):
+            if input_pass == PASSWORD:
                 st.session_state.authenticated = True
+                st.success("تم تسجيل الدخول بنجاح!")
                 st.rerun()
             else:
-                st.error("كلمة السر غير صحيحة!")
+                st.error("❌ كلمة السر غير صحيحة، يرجى المحاولة مرة أخرى.")
     st.stop()
 
-# القائمة الرئيسية
-menu = st.sidebar.radio(
-    "القائمة الرئيسية",
-    ["🏜️ حسابات الأراضي", "🏭 توريد المحطات", "📈 صافي أرباح الأراضي", "📊 الموقف المالي"]
+
+# ==========================================
+# 📋 القائمة الجانبية للتطبيق
+# ==========================================
+st.sidebar.title("شركة الرحمة 🌾")
+st.sidebar.caption("📞 تليفون: 01019381124 | 01000108658")
+st.sidebar.write("---")
+
+if st.sidebar.button("🔒 تسجيل الخروج", type="secondary", use_container_width=True):
+    st.session_state.authenticated = False
+    st.rerun()
+
+app_mode = st.sidebar.radio(
+    "انتقل إلى القسم:",
+    [
+        "1. حسابات الأراضي والعملاء",
+        "2. التوريد للمحطات",
+        "3. صافي أرباحي من الأرض",
+        "4. الموقف المالي للشركة"
+    ]
 )
 
-# ---------------------------------------------------------
-# 1. حسابات الأراضي
-# ---------------------------------------------------------
-if menu == "🏜️ حسابات الأراضي":
-    st.header("🏜️ إدارة حسابات الأراضي والعملاء")
+
+# ==========================================
+# 1. حسابات الأراضي والعملاء
+# ==========================================
+if app_mode == "1. حسابات الأراضي والعملاء":
+    st.title("🌾 حسابات الأراضي والعملاء")
+    st.caption("📞 تليفون: 01019381124 | 01000108658")
     
-    with st.expander("➕ إضافة أرض / عميل جديد"):
-        with st.form("add_land_form", clear_on_submit=True):
-            land_name = st.text_input("اسم العميل / الأرض")
-            land_type = st.selectbox("نوع التعامل / العميل", ["بطاطا تحت الشرب", "بطاطا صادر في البوكسة"])
-            submit_land = st.form_submit_button("إضافة العملاء / الأرض")
-            if submit_land and land_name:
-                if land_name not in data["lands"]:
-                    data["lands"][land_name] = {
-                        "type": land_type,
-                        "expenses": [],
-                        "supplies": [],
-                        "payments": []
-                    }
-                    save_data(data)
-                    st.success(f"تمت إضافة العميل {land_name} بنجاح!")
-                    st.rerun()
-                else:
-                    st.warning("اسم العميل موجود بالفعل!")
-
-    lands_list = list(data["lands"].keys())
-    if not lands_list:
-        st.info("لا يوجد عملاء مضافين حتى الآن.")
-    else:
-        selected_land = st.selectbox("اختر العميل / الأرض لمراجعة الحسابات", lands_list)
-        land_info = data["lands"][selected_land]
-        
-        if not isinstance(land_info, dict):
-            land_info = {"type": "بطاطا تحت الشرب", "expenses": [], "supplies": [], "payments": []}
-            data["lands"][selected_land] = land_info
-            
-        land_type = land_info.get("type", "بطاطا تحت الشرب")
-        
-        st.subheader(f"صفحة حساب: {selected_land} ({land_type})")
-
-        # --- النوع الأول: بطاطا تحت الشرب ---
-        if land_type == "بطاطا تحت الشرب":
-            tab1, tab2 = st.tabs(["➕ إضافة مصروفات / دفعات", "📋 كشف الحساب والعمليات"])
-            
-            with tab1:
-                with st.form("under_drinking_expense_form", clear_on_submit=True):
-                    st.write("##### إضافة مصروف جديد")
-                    exp_option = st.selectbox("نوع المصروف", ["جراندات", "أنفار", "فطار", "مناديب", "شكاير", "آخر (اكتب يدوي)"])
-                    custom_exp = st.text_input("اكتب نوع المصروف (إذا اخترت آخر)")
-                    exp_type = custom_exp if exp_option == "آخر (اكتب يدوي)" and custom_exp else exp_option
-                    
-                    amount = st.number_input("المبلغ / القيمة (جنيه)", min_value=0.0, step=50.0)
-                    submit_exp = st.form_submit_button("حفظ وإضافة المصروف (Enter ↵)")
-                    if submit_exp and amount > 0:
-                        if "expenses" not in land_info or not isinstance(land_info["expenses"], list):
-                            land_info["expenses"] = []
-                        land_info["expenses"].append({"type": exp_type, "amount": amount})
-                        save_data(data)
-                        st.success("تم تسجيل المصروف بنجاح!")
-                        st.rerun()
-
-                with st.form("under_drinking_payment_form", clear_on_submit=True):
-                    st.write("##### إضافة دفعة/فلوس أخذها صاحب الأرض")
-                    pay_amount = st.number_input("المبلغ المدفوع لصاحب الأرض (جنيه)", min_value=0.0, step=50.0)
-                    pay_note = st.text_input("ملاحظات / البيان")
-                    submit_pay = st.form_submit_button("حفظ الدفعة (Enter ↵)")
-                    if submit_pay and pay_amount > 0:
-                        if "payments" not in land_info or not isinstance(land_info["payments"], list):
-                            land_info["payments"] = []
-                        land_info["payments"].append({"amount": pay_amount, "note": pay_note})
-                        save_data(data)
-                        st.success("تم تسجيل الدفعة بنجاح!")
-                        st.rerun()
-
-            with tab2:
-                expenses_list = land_info.get("expenses", []) if isinstance(land_info.get("expenses"), list) else []
-                payments_list = land_info.get("payments", []) if isinstance(land_info.get("payments"), list) else []
-                
-                total_expenses = sum(x.get("amount", 0) for x in expenses_list if isinstance(x, dict))
-                total_payments = sum(x.get("amount", 0) for x in payments_list if isinstance(x, dict))
-                
-                col1, col2 = st.columns(2)
-                col1.metric("إجمالي المصاريف", f"{total_expenses:,.2f} جنيه")
-                col2.metric("إجمالي المبالغ المستلمة (دفوعات)", f"{total_payments:,.2f} جنيه")
-
-                st.write("---")
-                st.write("##### جدول المصروفات")
-                if expenses_list:
-                    df_exp = pd.DataFrame(expenses_list)
-                    st.dataframe(df_exp, use_container_width=True)
-                    if st.button("🗑️ مسح آخر مصروف"):
-                        land_info["expenses"].pop()
-                        save_data(data)
-                        st.rerun()
-
-        # --- النوع الثاني: بطاطا صادر في البوكسة ---
-        else:
-            tab1, tab2 = st.tabs(["➕ إدخال حركة جديدة", "🧾 كشف الحساب والطباعة"])
-            
-            with tab1:
-                col1, col2 = st.columns(2)
-                with col1:
-                    with st.form("box_exp_form", clear_on_submit=True):
-                        st.write("##### إضافة مصروفات")
-                        exp_opt = st.selectbox("نوع المصروف", ["جراندات", "أنفار", "فطار", "مناديب", "شكاير", "آخر"])
-                        cust_exp = st.text_input("نوع مصروف مخصص")
-                        e_type = cust_exp if exp_opt == "آخر" and cust_exp else exp_opt
-                        val = st.number_input("القيمة (جنيه)", min_value=0.0)
-                        if st.form_submit_button("حفظ المصروف"):
-                            if "expenses" not in land_info or not isinstance(land_info["expenses"], list):
-                                land_info["expenses"] = []
-                            land_info["expenses"].append({"type": e_type, "amount": val})
-                            save_data(data)
-                            st.success("تم الحفظ!")
-                            st.rerun()
-
-                with col2:
-                    with st.form("box_pay_form", clear_on_submit=True):
-                        st.write("##### فلوس أخذها صاحب الأرض")
-                        p_val = st.number_input("المبلغ (جنيه)", min_value=0.0)
-                        if st.form_submit_button("حفظ الدفعة"):
-                            if "payments" not in land_info or not isinstance(land_info["payments"], list):
-                                land_info["payments"] = []
-                            land_info["payments"].append({"amount": p_val})
-                            save_data(data)
-                            st.success("تم الحفظ!")
-                            st.rerun()
-
-                st.write("---")
-                with st.form("box_supply_form", clear_on_submit=True):
-                    st.write("##### إضافة توريد بطاطا صادر")
-                    raw_weight = st.number_input("وزن بطاطا صادر خام (كجم)", min_value=0.0)
-                    discount_rate = st.number_input("نسبة الخصم (%)", min_value=0.0, max_value=100.0)
-                    price_per_kg = st.number_input("السعر للكيلو (جنيه)", min_value=0.0)
-                    
-                    if st.form_submit_button("حفظ التوريد (Enter ↵)"):
-                        net_weight = raw_weight * (1 - (discount_rate / 100.0))
-                        total_price = net_weight * price_per_kg
-                        if "supplies" not in land_info or not isinstance(land_info["supplies"], list):
-                            land_info["supplies"] = []
-                        land_info["supplies"].append({
-                            "raw_weight": raw_weight,
-                            "discount_rate": discount_rate,
-                            "net_weight": net_weight,
-                            "price_per_kg": price_per_kg,
-                            "total_price": total_price
-                        })
-                        save_data(data)
-                        st.success("تم تسجيل توريد البطاطا الصادر بنجاح!")
-                        st.rerun()
-
-            with tab2:
-                exp_list = land_info.get("expenses", []) if isinstance(land_info.get("expenses"), list) else []
-                pay_list = land_info.get("payments", []) if isinstance(land_info.get("payments"), list) else []
-                sup_list = land_info.get("supplies", []) if isinstance(land_info.get("supplies"), list) else []
-
-                tot_exp = sum(x.get("amount", 0) for x in exp_list if isinstance(x, dict))
-                tot_pay = sum(x.get("amount", 0) for x in pay_list if isinstance(x, dict))
-                tot_raw_w = sum(x.get("raw_weight", 0) for x in sup_list if isinstance(x, dict))
-                tot_net_w = sum(x.get("net_weight", 0) for x in sup_list if isinstance(x, dict))
-                tot_potato_val = sum(x.get("total_price", 0) for x in sup_list if isinstance(x, dict))
-                
-                remaining_for_him = tot_potato_val - (tot_exp + tot_pay)
-
-                st.markdown("### 📜 شركة الرحمة لإدارة الأراضي")
-                st.caption("📞 تليفون: 01019381124 | 01000108658")
-                st.caption(f"كشف حساب العميل: {selected_land} | نوع العميل: بطاطا صادر في البوكسة")
-                st.write("---")
-                
-                c1, c2, c3 = st.columns(3)
-                c1.metric("إجمالي بطاطا صادر (خام)", f"{tot_raw_w:,.1f} كجم")
-                c2.metric("إجمالي الوزن بعد الخصم", f"{tot_net_w:,.1f} كجم")
-                c3.metric("إجمالي سعر البطاطا", f"{tot_potato_val:,.2f} جنيه")
-
-                c4, c5, c6 = st.columns(3)
-                c4.metric("إجمالي المصاريف", f"{tot_exp:,.2f} جنيه")
-                c5.metric("إجمالي الفلوس التي أخذها", f"{tot_pay:,.2f} جنيه")
-                
-                balance_label = "باقي له" if remaining_for_him >= 0 else "باقي عليه"
-                c6.metric(f"💰 النتيجة النهائية ({balance_label})", f"{abs(remaining_for_him):,.2f} جنيه")
-
-                st.write("---")
-                st.write("##### تفاصيل توريدات البطاطا")
-                if sup_list:
-                    df_s = pd.DataFrame(sup_list)
-                    st.dataframe(df_s, use_container_width=True)
-
-# ---------------------------------------------------------
-# 2. توريد المحطات
-# ---------------------------------------------------------
-elif menu == "🏭 توريد المحطات":
-    st.header("🏭 توريد المحطات والتوليدات")
+    tab_add_land, tab_client_page = st.tabs(["➕ إضافة أرض / عميل جديد", "📁 صفحة حسابات العملاء المخصصة"])
     
-    with st.expander("➕ إضافة محطة جديدة"):
-        with st.form("add_station_form", clear_on_submit=True):
-            st_name = st.text_input("اسم المحطة")
-            if st.form_submit_button("حفظ المحطة") and st_name:
-                if st_name not in data["stations"]:
-                    data["stations"][st_name] = {"supplies": [], "payments": []}
-                    save_data(data)
-                    st.success("تمت إضافة المحطة!")
-                    st.rerun()
-
-    st_list = list(data["stations"].keys())
-    if not st_list:
-        st.info("لا توجد محطات مضافة حتى الآن.")
-    else:
-        selected_st = st.selectbox("اختر المحطة", st_list)
-        st_data = data["stations"][selected_st]
-        if not isinstance(st_data, dict):
-            st_data = {"supplies": [], "payments": []}
-            data["stations"][selected_st] = st_data
-
-        st_supplies = st_data.get("supplies", []) if isinstance(st_data.get("supplies"), list) else []
-        st_payments = st_data.get("payments", []) if isinstance(st_data.get("payments"), list) else []
-
-        tot_supp_val = sum(x.get("total_price", 0) for x in st_supplies if isinstance(x, dict))
-        tot_st_pay = sum(x.get("amount", 0) for x in st_payments if isinstance(x, dict))
-        st_rem = tot_supp_val - tot_st_pay
-
-        col_top1, col_top2, col_top3 = st.columns(3)
-        col_top1.metric("إجمالي المستحق على المحطة", f"{tot_supp_val:,.2f} جنيه")
-        col_top2.metric("💳 الفلوس التي دفعتها المحطة", f"{tot_st_pay:,.2f} جنيه")
-        col_top3.metric("المبلغ المتبقي (لي عند المحطة)", f"{st_rem:,.2f} جنيه")
-
-        st.write("---")
-        t1, t2 = st.tabs(["➕ إضافة توريد / دفعة", "📊 السجلات والبيانات"])
-        
-        with t1:
-            with st.form("station_supply_form", clear_on_submit=True):
-                st.write("##### تسجيل توريد محطة")
-                w_raw = st.number_input("الوزن الخام (كجم)", min_value=0.0)
-                disc_type = st.radio("نوع الخصم", ["خصم بالكيلو", "خصم بالنسبة (%)"], horizontal=True)
-                disc_val = st.number_input("قيمة الخصم", min_value=0.0)
-                price_kg = st.number_input("سعر الكيلو (جنيه)", min_value=0.0)
-                
-                if st.form_submit_button("حفظ التوريد (Enter ↵)"):
-                    if disc_type == "خصم بالكيلو":
-                        w_net = max(0.0, w_raw - disc_val)
+    with tab_add_land:
+        st.subheader("تسجيل أرض وصاحب أرض جديد")
+        with st.form("land_reg_form", clear_on_submit=True):
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                owner_name = st.text_input("اسم صاحب الأرض (العميل)")
+            with c2:
+                phone_num = st.text_input("رقم التليفون")
+            with c3:
+                land_loc = st.text_input("موقع الأرض / الحوض")
+            
+            save_l = st.form_submit_button("حفظ وحجز صفحة للعميل")
+            if save_l:
+                if owner_name.strip():
+                    existing_names = [l["owner"] for l in st.session_state.lands]
+                    if owner_name in existing_names:
+                        st.warning("هذا العميل مسجل مسبقاً.")
                     else:
-                        w_net = w_raw * (1 - (disc_val / 100.0))
+                        st.session_state.lands.append({"owner": owner_name, "phone": phone_num, "location": land_loc})
+                        save_data()
+                        st.success(f"تم إنشاء صفحة خاصة بالعميل ({owner_name}) بنجاح وحفظها دائمياً!")
+                        st.rerun()
+                else:
+                    st.error("يرجى إدخال اسم صاحب الأرض.")
                     
-                    tot_p = w_net * price_kg
-                    if "supplies" not in st_data or not isinstance(st_data["supplies"], list):
-                        st_data["supplies"] = []
-                    st_data["supplies"].append({
-                        "raw_weight": w_raw,
-                        "discount_type": disc_type,
-                        "discount_value": disc_val,
-                        "net_weight": w_net,
-                        "price_per_kg": price_kg,
-                        "total_price": tot_p
-                    })
-                    save_data(data)
-                    st.success("تم حفظ التوريد للمحطة!")
+    with tab_client_page:
+        if st.session_state.lands:
+            land_list = [l["owner"] for l in st.session_state.lands]
+            
+            col_sel, col_del = st.columns([3, 1])
+            with col_sel:
+                selected_client = st.selectbox("اختر اسم العميل لفتح صفحته الخاصة:", land_list)
+            with col_del:
+                st.write("")
+                st.write("")
+                if st.button("🗑️ حذف العميل بالكامل", type="secondary"):
+                    st.session_state.lands = [l for l in st.session_state.lands if l["owner"] != selected_client]
+                    st.session_state.land_accounts = [r for r in st.session_state.land_accounts if r["owner"] != selected_client]
+                    if selected_client in st.session_state.saved_profits:
+                        del st.session_state.saved_profits[selected_client]
+                    if selected_client in st.session_state.client_settings:
+                        del st.session_state.client_settings[selected_client]
+                    save_data()
+                    st.success(f"تم حذف العميل ({selected_client}) وكل حركاته بنجاح!")
                     st.rerun()
 
-            with st.form("station_pay_form", clear_on_submit=True):
-                st.write("##### تسجيل دفعة مقبوضة من المحطة")
-                st_p_amount = st.number_input("المبلغ المستلم من المحطة (جنيه)", min_value=0.0)
-                if st.form_submit_button("حفظ الدفعة"):
-                    if "payments" not in st_data or not isinstance(st_data["payments"], list):
-                        st_data["payments"] = []
-                    st_data["payments"].append({"amount": st_p_amount})
-                    save_data(data)
-                    st.success("تم تسجيل الدفعة!")
-                    st.rerun()
+            client_info = next((l for l in st.session_state.lands if l["owner"] == selected_client), None)
+            
+            if client_info:
+                st.markdown("---")
+                st.header(f"📂 الصفحة الخاصة بالعميل: {selected_client}")
+                st.write(f"📱 **رقم التليفون:** {client_info['phone']} | 📍 **موقع الأرض:** {client_info['location']}")
+                
+                with st.form(f"client_trans_{selected_client}", clear_on_submit=True):
+                    st.subheader("تسجيل وارد، مصاريف، أو سلف جديدة للعميل")
+                    
+                    col_tr1, col_tr2 = st.columns(2)
+                    with col_tr1:
+                        crop_item = st.text_input("الصنف (نوع المحصول)")
+                        exp_desc = st.text_input("اسم المصروف (مثل: عمالة، سماد...)")
+                        record_date = st.date_input("التاريخ (ثابت حتى تغيره)", value=st.session_state.last_date)
+                    with col_tr2:
+                        sader_weight = st.number_input("وارد صادر (بالوزن)", min_value=0.0, step=1.0)
+                        second_weight = st.number_input("وارد درجة ثانية (بالوزن)", min_value=0.0, step=1.0)
+                        farza_weight = st.number_input("وارد فرزة (بالوزن)", min_value=0.0, step=1.0)
+                    
+                    col_tr3, col_tr4 = st.columns(2)
+                    with col_tr3:
+                        exp_amount = st.number_input("قيمة المصروف (جنيه)", min_value=0.0, step=50.0)
+                    with col_tr4:
+                        advanced_cash = st.number_input("استلام صاحب الأرض فلوس (سلفة نقدية)", min_value=0.0, step=50.0)
+                        
+                    add_trans_btn = st.form_submit_button("إضافة إلى صفحة العميل")
+                    
+                    if add_trans_btn:
+                        st.session_state.last_date = record_date
+                        st.session_state.land_accounts.append({
+                            "owner": selected_client,
+                            "date": str(record_date),
+                            "item": crop_item,
+                            "expense_desc": exp_desc if exp_desc.strip() else "بدون وصف",
+                            "expense_amount": exp_amount,
+                            "sader": sader_weight,
+                            "second": second_weight,
+                            "farza": farza_weight,
+                            "advanced_cash": advanced_cash
+                        })
+                        save_data()
+                        st.success(f"تمت إضافة الحركة بنجاح إلى صفحة {selected_client}!")
+                        st.rerun()
 
-        with t2:
-            st.write("##### توريدات المحطة")
-            if st_supplies:
-                st.dataframe(pd.DataFrame(st_supplies), use_container_width=True)
-
-# ---------------------------------------------------------
-# 3. صافي أرباح الأراضي
-# ---------------------------------------------------------
-elif menu == "📈 صافي أرباح الأراضي":
-    st.header("📈 تحديد الأرباح وتكلفة المبيعات")
-    
-    lands_list = list(data["lands"].keys())
-    if not lands_list:
-        st.info("قم بإضافة عملاء أولاً.")
-    else:
-        sel_l = st.selectbox("اختر العميل للبحث وعرض أوزان البطاطا", lands_list)
-        l_info = data["lands"][sel_l]
-        if not isinstance(l_info, dict):
-            l_info = {}
-        
-        st.subheader(f"بيانات ومبيعات العميل: {sel_l}")
-        
-        supplies = l_info.get("supplies", []) if isinstance(l_info.get("supplies"), list) else []
-        if not supplies:
-            st.warning("لا توجد توريدات مسجلة لهذا العميل حتى الآن.")
+                st.markdown("---")
+                st.subheader(f"📊 سجل حركات وتفاصيل أرض {selected_client}")
+                client_records = [r for r in st.session_state.land_accounts if r["owner"] == selected_client]
+                
+                if client_records:
+                    for idx, record in enumerate(client_records):
+                        cols_row = st.columns([7, 1])
+                        with cols_row[0]:
+                            exp_label = record['expense_desc'] if record['expense_amount'] > 0 else "لا يوجد مصروف"
+                            st.write(f"📅 **التاريخ:** {record['date']} | **الصنف:** {record['item']} | **صادر:** {record['sader']} | **ثانية:** {record['second']} | **فرزة:** {record['farza']} | **{exp_label}:** {record['expense_amount']} ج | **سلف:** {record['advanced_cash']} ج")
+                        with cols_row[1]:
+                            if st.button("🗑️ حذف", key=f"del_rec_{selected_client}_{idx}"):
+                                st.session_state.land_accounts.remove(record)
+                                save_data()
+                                st.success("تم حذف هذه الحركة بنجاح!")
+                                st.rerun()
+                    
+                    st.markdown("---")
+                    st.markdown("### 🧮 تصفية الحساب وإصدار كشف الحساب النهائي:")
+                    
+                    current_client_settings = st.session_state.client_settings.get(selected_client, {"discount": 0.0, "price": 0.0})
+                    
+                    with st.form(f"settlement_form_{selected_client}"):
+                        col_f1, col_f2 = st.columns(2)
+                        with col_f1:
+                            discount_pct = st.number_input("نسبة الخصم (%) المحددة", min_value=0.0, max_value=100.0, value=float(current_client_settings.get("discount", 0.0)), step=0.5)
+                        with col_f2:
+                            price_per_unit = st.number_input("سعر الوحدة (جنيه)", min_value=0.0, value=float(current_client_settings.get("price", 0.0)), step=0.5)
+                        
+                        save_settings_btn = st.form_submit_button("💾 حفظ نسبة الخصم والسعر وحساب الصافي")
+                        
+                        if save_settings_btn:
+                            st.session_state.client_settings[selected_client] = {
+                                "discount": discount_pct,
+                                "price": price_per_unit
+                            }
+                            save_data()
+                            st.success("تم حفظ نسبة الخصم والسعر لهذا العميل بصفة دائمة!")
+                    
+                    active_discount = st.session_state.client_settings.get(selected_client, {}).get("discount", 0.0)
+                    active_price = st.session_state.client_settings.get(selected_client, {}).get("price", 0.0)
+                    
+                    total_sader = sum(r["sader"] for r in client_records)
+                    total_second = sum(r["second"] for r in client_records)
+                    total_farza = sum(r["farza"] for r in client_records)
+                    gross_weight = total_sader + total_second + total_farza
+                    
+                    discount_value = gross_weight * (active_discount / 100.0)
+                    net_weight = gross_weight - discount_value
+                    total_money_value = net_weight * active_price
+                    
+                    total_advanced = sum(r["advanced_cash"] for r in client_records)
+                    remaining_balance = total_money_value - total_advanced
+                    
+                    st.info(f"""
+                    * **إجمالي الوزن (صادر + ثانية + فرزة):** {gross_weight:,.2f}
+                    * **نسبة الخصم المحفوظة ({active_discount}%):** {discount_value:,.2f}
+                    * **صافي الوزن بعد الخصم:** {net_weight:,.2f}
+                    * **سعر الوحدة المحفوظ:** {active_price:,.2f} جنيه
+                    * **إجمالي القيمة (صافي الوزن × السعر):** {total_money_value:,.2f} جنيه
+                    * **ما استلمه صاحب الأرض (سلف / فلوس فقط):** {total_advanced:,.2f} جنيه
+                    """)
+                    
+                    st.success(f"### 💰 الباقي له نهائياً: {remaining_balance:,.2f} جنيه")
+                    
+                    if st.button(f"🖨️ طباعة كشف حساب العميل: {selected_client}", key=f"print_{selected_client}"):
+                        st.markdown("---")
+                        print_html = f"""
+                        <div style="text-align: center; border: 2px solid #333; padding: 25px; border-radius: 10px;">
+                            <h2>شركة الرحمة</h2>
+                            <p><b>أرقام التليفونات:</b> 01019381124 | 01000108658</p>
+                            <h3>كشف حساب نهائي لصاحب الأرض: {selected_client}</h3>
+                            <hr>
+                            <p><b>وارد صادر (بالوزن):</b> {total_sader:,.2f}</p>
+                            <p><b>وارد درجة ثانية (بالوزن):</b> {total_second:,.2f}</p>
+                            <p><b>وارد فرزة (بالوزن):</b> {total_farza:,.2f}</p>
+                            <p><b>نسبة الخصم المحددة:</b> {active_discount}%</p>
+                            <p><b>صافي الوزن بعد الخصم:</b> {net_weight:,.2f}</p>
+                            <p><b>سعر الوحدة:</b> {active_price:,.2f} جنيه</p>
+                            <p><b>إجمالي مستحقات الوارد:</b> {total_money_value:,.2f} جنيه</p>
+                            <p><b>ما استلمه صاحب الأرض (سلف):</b> {total_advanced:,.2f} جنيه</p>
+                            <h2>المبلغ الباقي له نهائياً: {remaining_balance:,.2f} جنيه</h2>
+                        </div>
+                        <script>
+                            window.print();
+                        </script>
+                        """
+                        st.markdown(print_html, unsafe_allow_html=True)
+                else:
+                    st.info("لا توجد حركات مسجلة في صفحة هذا العميل حتى الآن.")
         else:
-            st.write("##### قم بتحديد سعر البيع لكل توريد بشكل منفصل:")
-            
-            total_sales = 0.0
-            for idx, sup in enumerate(supplies):
-                if isinstance(sup, dict):
-                    with st.container():
-                        st.markdown(f"**التوريد #{idx + 1}** - وزن الصافي: `{sup.get('net_weight', 0):,.1f} كجم`")
-                        sell_price = st.number_input(f"سعر بيع التوريد #{idx + 1} (لكل كجم)", min_value=0.0, key=f"sell_{sel_l}_{idx}")
-                        sub_total = sell_price * sup.get('net_weight', 0)
-                        st.caption(f"إجمالي بيع التوريد: {sub_total:,.2f} جنيه")
-                        total_sales += sub_total
-                        st.write("---")
+            st.warning("يرجى إضافة عميل/أرض أولاً.")
 
-            tot_e = sum(x.get("amount", 0) for x in l_info.get("expenses", []) if isinstance(x, dict))
-            tot_p = sum(x.get("amount", 0) for x in l_info.get("payments", []) if isinstance(x, dict))
-            
-            net_profit = total_sales - (tot_e + tot_p)
 
-            m1, m2, m3 = st.columns(3)
-            m1.metric("إجمالي المبيعات", f"{total_sales:,.2f} جنيه")
-            m2.metric("التكلفة (مصاريف + دفوعات)", f"{(tot_e + tot_p):,.2f} جنيه")
-            
-            p_label = "صافي الربح 🟢" if net_profit >= 0 else "صافي الخسارة 🔴"
-            m3.metric(p_label, f"{abs(net_profit):,.2f} جنيه")
-
-# ---------------------------------------------------------
-# 4. الموقف المالي
-# ---------------------------------------------------------
-elif menu == "📊 الموقف المالي":
-    st.header("📊 الموقف المالي الشامل")
+# ==========================================
+# 2. التوريد للمحطات
+# ==========================================
+elif app_mode == "2. التوريد للمحطات":
+    st.title("🏭 التوريد للمحطات وحساباتها")
+    st.caption("📞 تليفون: 01019381124 | 01000108658")
     
-    total_due_from_stations = 0.0
-    for st_n, st_v in data.get("stations", {}).items():
-        if isinstance(st_v, dict):
-            s_list = st_v.get("supplies", []) if isinstance(st_v.get("supplies"), list) else []
-            p_list = st_v.get("payments", []) if isinstance(st_v.get("payments"), list) else []
-            s_val = sum(x.get("total_price", 0) for x in s_list if isinstance(x, dict))
-            p_val = sum(x.get("amount", 0) for x in p_list if isinstance(x, dict))
-            total_due_from_stations += (s_val - p_val)
-
-    total_due_to_clients = 0.0
-    for l_n, l_v in data.get("lands", {}).items():
-        if isinstance(l_v, dict) and l_v.get("type") == "بطاطا صادر في البوكسة":
-            e_list = l_v.get("expenses", []) if isinstance(l_v.get("expenses"), list) else []
-            p_list = l_v.get("payments", []) if isinstance(l_v.get("payments"), list) else []
-            s_list = l_v.get("supplies", []) if isinstance(l_v.get("supplies"), list) else []
+    tab_add_st, tab_st_page = st.tabs(["➕ تسجيل محطة جديدة", "📁 صفحات المحطات والتوريدات اليومية"])
+    
+    with tab_add_st:
+        st.subheader("تسجيل محطة جديدة في النظام")
+        with st.form("add_station_form", clear_on_submit=True):
+            col_st1, col_st2 = st.columns(2)
+            with col_st1:
+                st_name_input = st.text_input("اسم المحطة")
+            with col_st2:
+                st_phone_input = st.text_input("رقم تليفون المحطة")
+                
+            save_st_btn = st.form_submit_button("حفظ وحجز صفحة للمحطة")
             
-            tot_exp = sum(x.get("amount", 0) for x in e_list if isinstance(x, dict))
-            tot_pay = sum(x.get("amount", 0) for x in p_list if isinstance(x, dict))
-            tot_potato_val = sum(x.get("total_price", 0) for x in s_list if isinstance(x, dict))
-            rem = tot_potato_val - (tot_exp + tot_pay)
-            if rem > 0:
-                total_due_to_clients += rem
+            if save_st_btn:
+                if st_name_input.strip():
+                    existing_st = [s["name"] for s in st.session_state.stations]
+                    if st_name_input.strip() in existing_st:
+                        st.warning("هذه المحطة مسجلة مسبقاً.")
+                    else:
+                        st.session_state.stations.append({
+                            "name": st_name_input.strip(),
+                            "phone": st_phone_input.strip()
+                        })
+                        save_data()
+                        st.success(f"تمت إضافة المحطة ({st_name_input.strip()}) بنجاح وحفظها!")
+                        st.rerun()
+                else:
+                    st.error("يرجى إدخال اسم المحطة.")
+                    
+    with tab_st_page:
+        if st.session_state.stations:
+            station_list = [s["name"] for s in st.session_state.stations]
+            
+            col_st_sel, col_st_del = st.columns([3, 1])
+            with col_st_sel:
+                selected_station = st.selectbox("اختر المحطة لفتح صفحتها الخاصة وإدخال التوريدات:", station_list)
+            with col_st_del:
+                st.write("")
+                st.write("")
+                if st.button("🗑️ حذف المحطة بالكامل", type="secondary"):
+                    st.session_state.stations = [s for s in st.session_state.stations if s["name"] != selected_station]
+                    st.session_state.station_supplies = [s for s in st.session_state.station_supplies if s["station"] != selected_station]
+                    save_data()
+                    st.success(f"تم حذف المحطة ({selected_station}) وكافة توريداتها بنجاح!")
+                    st.rerun()
 
-    col_f1, col_f2 = st.columns(2)
-    col_f1.metric("💵 إجمالي المبالغ المستحقة لك (عند المحطات)", f"{total_due_from_stations:,.2f} جنيه")
-    col_f2.metric("🔻 إجمالي المبالغ المستحقة عليك (باقي للعملاء)", f"{total_due_to_clients:,.2f} جنيه")
+            st_info = next((s for s in st.session_state.stations if s["name"] == selected_station), None)
+            
+            if st_info:
+                st.markdown("---")
+                st.header(f"🏭 الصفحة الخاصة بالمحطة: {selected_station}")
+                st.write(f"📱 **رقم تليفون المحطة:** {st_info['phone']}")
+                
+                with st.form(f"trans_st_{selected_station}", clear_on_submit=True):
+                    st.subheader("تسجيل بيانات توريد سيارة ودفعات نقدية جديدة للمحطة")
+                    
+                    c_st_a, c_st_b = st.columns(2)
+                    with c_st_a:
+                        sup_date = st.date_input("تاريخ التوريد", value=st.session_state.last_date)
+                        car_number = st.text_input("رقم السيارة")
+                        raw_weight = st.number_input("الوزن الخام", min_value=0.0, step=1.0)
+                    with c_st_b:
+                        discount_pct_st = st.number_input("نسبة الخصم (%)", min_value=0.0, max_value=100.0, value=0.0, step=0.5)
+                        price_st = st.number_input("السعر", min_value=0.0, step=0.5)
+                    
+                    calc_net_w = raw_weight - (raw_weight * (discount_pct_st / 100.0))
+                    calc_total = calc_net_w * price_st
+                    st.info(f"📌 **معاينة سريعة للتوريد:** الوزن بعد الخصم = `{calc_net_w:,.2f}` | 💵 **الإجمالي (الوزن بعد الخصم × السعر):** `{calc_total:,.2f}` جنيه")
+                    
+                    st.markdown("---")
+                    st.markdown("##### 💵 خانة الفلوس التي دفعتها المحطة:")
+                    paid_today = st.number_input("المبلغ الذي دفعته المحطة (جنيه)", min_value=0.0, step=100.0, value=0.0)
+                        
+                    add_st_sup = st.form_submit_button("حفظ التوريد لصفحة المحطة")
+                    
+                    if add_st_sup:
+                        st.session_state.last_date = sup_date
+                        net_w = raw_weight - (raw_weight * (discount_pct_st / 100.0))
+                        total_car_money = net_w * price_st
+                        
+                        st.session_state.station_supplies.append({
+                            "station": selected_station,
+                            "date": str(sup_date),
+                            "car": car_number,
+                            "weight": raw_weight,
+                            "discount": discount_pct_st,
+                            "net_weight": net_w,
+                            "price": price_st,
+                            "total_money": total_car_money,
+                            "paid_amount": paid_today
+                        })
+                        save_data()
+                        st.success("تم إضافة التوريد والحساب لصفحة المحطة بنجاح وحفظه دائمياً!")
+                        st.rerun()
+
+                st.markdown("---")
+                st_records = [s for s in st.session_state.station_supplies if s["station"] == selected_station]
+                
+                if st_records:
+                    st.subheader(f"📋 سجل حركات وتوريدات محطة: {selected_station}")
+                    for idx_st, s_rec in enumerate(st_records):
+                        cols_st_row = st.columns([7, 1])
+                        with cols_st_row[0]:
+                            paid_txt = f"{s_rec['paid_amount']:,.2f} ج"
+                            st.write(f"📅 **التاريخ:** {s_rec['date']} | 🚗 **السيارة:** {s_rec['car']} | **الوزن الخام:** {s_rec['weight']:,.2f} | **الخصم:** {s_rec['discount']}% | **صافي الوزن:** {s_rec['net_weight']:,.2f} | **السعر:** {s_rec['price']} ج | **الإجمالي:** {s_rec['total_money']:,.2f} ج | **المقْبوض (المدفوع):** {paid_txt}")
+                        with cols_st_row[1]:
+                            if st.button("🗑️ حذف", key=f"del_st_rec_{selected_station}_{idx_st}"):
+                                st.session_state.station_supplies.remove(s_rec)
+                                save_data()
+                                st.success("تم حذف السجل بنجاح!")
+                                st.rerun()
+                        
+                    st.markdown("---")
+                    st.subheader("🧮 تصفية الحساب النهائي مع المحطة:")
+                    
+                    total_raw_w = sum(s["weight"] for s in st_records)
+                    total_net_w = sum(s["net_weight"] for s in st_records)
+                    total_station_money = sum(s["total_money"] for s in st_records)
+                    total_station_paid = sum(s["paid_amount"] for s in st_records)
+                    remaining_on_station = total_station_money - total_station_paid
+                    
+                    col_m1, col_m2, col_m3, col_m4, col_m5 = st.columns(5)
+                    with col_m1:
+                        st.metric("إجمالي الوزن الخام", f"{total_raw_w:,.2f}")
+                    with col_m2:
+                        st.metric("إجمالي الوزن بعد الخصم", f"{total_net_w:,.2f}")
+                    with col_m3:
+                        st.metric("إجمالي فلوس البطاطا", f"{total_station_money:,.2f} ج")
+                    with col_m4:
+                        st.metric("إجمالي ما دفعته المحطة", f"{total_station_paid:,.2f} ج")
+                    with col_m5:
+                        st.metric("باقي ليا عند المحطة", f"{remaining_on_station:,.2f} ج")
+                else:
+                    st.info("لا توجد توريدات مسجلة لهذه المحطة حتى الآن.")
+        else:
+            st.warning("يرجى إضافة محطة أولاً من التبويب الأول.")
+
+
+# ==========================================
+# 3. صافي أرباحي من الأرض
+# ==========================================
+elif app_mode == "3. صافي أرباحي من الأرض":
+    st.title("📈 صفحة أرباحي الخاصة من الأراضي")
+    st.caption("📞 تليفون: 01019381124 | 01000108658")
+    
+    if st.session_state.lands:
+        land_list = [l["owner"] for l in st.session_state.lands]
+        selected_prof_owner = st.selectbox("اختر الأرض / العميل لفتح صفحته الخاصة وحفظ أرباحها:", land_list)
+        
+        owner_recs = [r for r in st.session_state.land_accounts if r["owner"] == selected_prof_owner]
+        
+        total_sader_w = sum(r["sader"] for r in owner_recs) if owner_recs else 0.0
+        total_second_w = sum(r["second"] for r in owner_recs) if owner_recs else 0.0
+        total_farza_w = sum(r["farza"] for r in owner_recs) if owner_recs else 0.0
+        
+        total_expenses_p = sum(r["expense_amount"] for r in owner_recs) if owner_recs else 0.0
+        total_advanced_p = sum(r["advanced_cash"] for r in owner_recs) if owner_recs else 0.0
+        
+        st.markdown("---")
+        st.subheader(f"🌾 أوزان وتكاليف أرض: {selected_prof_owner}")
+        
+        col_w1, col_w2, col_w3 = st.columns(3)
+        with col_w1:
+            st.info(f"**إجمالي الصادر:** {total_sader_w:,.2f}")
+        with col_w2:
+            st.info(f"**إجمالي الدرجة الثانية:** {total_second_w:,.2f}")
+        with col_w3:
+            st.info(f"**إجمالي الفرزة:** {total_farza_w:,.2f}")
+            
+        st.markdown("### 💵 تحديد سعر بيع كل وزنة (أنا بعتها بكام؟):")
+        
+        saved_data = st.session_state.saved_profits.get(selected_prof_owner, {"p_sader": 0.0, "p_second": 0.0, "p_farza": 0.0})
+        
+        with st.form(f"profit_calc_form_{selected_prof_owner}"):
+            c_p1, c_p2, c_p3 = st.columns(3)
+            with c_p1:
+                price_sader = st.number_input("سعر بيع الصادر (جنيه)", min_value=0.0, value=float(saved_data.get("p_sader", 0.0)), step=0.5)
+            with c_p2:
+                price_second = st.number_input("سعر بيع الدرجة الثانية (جنيه)", min_value=0.0, value=float(saved_data.get("p_second", 0.0)), step=0.5)
+            with c_p3:
+                price_farza = st.number_input("سعر بيع الفرزة (جنيه)", min_value=0.0, value=float(saved_data.get("p_farza", 0.0)), step=0.5)
+                
+            save_profit_btn = st.form_submit_button("💾 حفظ وحساب صافي الربح / الخسارة للأرض")
+            
+            if save_profit_btn:
+                st.session_state.saved_profits[selected_prof_owner] = {
+                    "p_sader": price_sader,
+                    "p_second": price_second,
+                    "p_farza": price_farza
+                }
+                save_data()
+                saved_data = st.session_state.saved_profits[selected_prof_owner]
+                st.success("تم حفظ الأسعار والنتائج في صفحة هذا العميل بنجاح!")
+        
+        cur_p_sader = saved_data.get("p_sader", 0.0)
+        cur_p_second = saved_data.get("p_second", 0.0)
+        cur_p_farza = saved_data.get("p_farza", 0.0)
+        
+        total_sales_revenue = (total_sader_w * cur_p_sader) + (total_second_w * cur_p_second) + (total_farza_w * cur_p_farza)
+        total_cost = total_expenses_p + total_advanced_p
+        net_profit_loss = total_sales_revenue - total_cost
+        
+        st.markdown("---")
+        st.subheader(f"📊 ملخص النتيجة المالية المحفوظة لأرض: {selected_prof_owner}")
+        
+        res_col1, res_col2, res_col3, res_col4 = st.columns(4)
+        with res_col1:
+            st.metric("إجمالي قيمة البيع", f"{total_sales_revenue:,.2f} جنيه")
+        with res_col2:
+            st.metric("إجمالي المصاريف", f"{total_expenses_p:,.2f} جنيه")
+        with res_col3:
+            st.metric("ما استلمه صاحب الأرض", f"{total_advanced_p:,.2f} جنيه")
+        with res_col4:
+            st.metric("صافي النتيجة", f"{net_profit_loss:,.2f} جنيه")
+            
+        if net_profit_loss > 0:
+            st.success(f"🎉 **الأرض حققت مكسباً صافياً قدره:** {net_profit_loss:,.2f} جنيه")
+        elif net_profit_loss < 0:
+            st.error(f"⚠️ **الأرض حققت خسارة قدرها:** {abs(net_profit_loss):,.2f} جنيه")
+        else:
+            st.info("⚖️ **النتيجة متكافئة (لا يوجد مكسب ولا خسارة).**")
+    else:
+        st.warning("يرجى إضافة أراضٍ مسجلة أولاً.")
+
+
+# ==========================================
+# 4. الموقف المالي للشركة
+# ==========================================
+elif app_mode == "4. الموقف المالي للشركة":
+    st.title("💼 الموقف المالي الشامل للشركة")
+    st.caption("📞 تليفون: 01019381124 | 01000108658")
+    st.markdown("هنا يمكنك متابعة إجمالي الأموال التي لك لدى المحطات، والأموال التي عليك للعملاء أصحاب الأراضي بشكل لحظي.")
+    st.markdown("---")
+    
+    # 1. حساب إجمالي الفلوس اللي ليك بره عند كل المحطات
+    total_all_stations_remaining = 0.0
+    for st_obj in st.session_state.stations:
+        st_name = st_obj["name"]
+        st_recs = [s for s in st.session_state.station_supplies if s["station"] == st_name]
+        if st_recs:
+            t_money = sum(s["total_money"] for s in st_recs)
+            t_paid = sum(s["paid_amount"] for s in st_recs)
+            total_all_stations_remaining += (t_money - t_paid)
+
+    # 2. حساب إجمالي الفلوس اللي عليك بره لكل العملاء (الباقي لهم نهائياً)
+    total_all_clients_remaining = 0.0
+    for land_obj in st.session_state.lands:
+        c_name = land_obj["owner"]
+        c_recs = [r for r in st.session_state.land_accounts if r["owner"] == c_name]
+        if c_recs:
+            c_settings = st.session_state.client_settings.get(c_name, {"discount": 0.0, "price": 0.0})
+            c_disc = c_settings.get("discount", 0.0)
+            c_price = c_settings.get("price", 0.0)
+            
+            c_gross = sum(r["sader"] + r["second"] + r["farza"] for r in c_recs)
+            c_net_w = c_gross - (c_gross * (c_disc / 100.0))
+            c_total_val = c_net_w * c_price
+            c_advanced = sum(r["advanced_cash"] for r in c_recs)
+            
+            c_rem = c_total_val - c_advanced
+            total_all_clients_remaining += c_rem
+
+    # عرض المبالغ في بطاقات واضحة ومميزة
+    col_fin1, col_fin2 = st.columns(2)
+    
+    with col_fin1:
+        st.metric(
+            label="🏭 إجمالي الفلوس اللي ليك بره (عند كل المحطات)", 
+            value=f"{total_all_stations_remaining:,.2f} جنيه",
+            delta="إجمالي المستحقات لك"
+        )
+        
+    with col_fin2:
+        st.metric(
+            label="🌾 إجمالي الفلوس اللي عليك بره (لكل العملاء)", 
+            value=f"{total_all_clients_remaining:,.2f} جنيه",
+            delta="إجمالي المستحقات للعملاء",
+            delta_color="inverse"
+        )
