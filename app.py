@@ -59,7 +59,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# تنسيقات CSS لإلغاء أزرار الاسبينر وحماية الخانات
+# تنسيقات CSS وإعدادات الطباعة
 st.markdown("""
     <style>
     input[type=number]::-webkit-inner-spin-button,
@@ -77,6 +77,54 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         border-right: 5px solid #1E88E5;
         margin-bottom: 15px;
+    }
+    
+    /* تنسيقات كشف الحساب المخصص للطباعة */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #print-section, #print-section * {
+            visibility: visible;
+        }
+        #print-section {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            direction: rtl;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .no-print {
+            display: none !important;
+        }
+    }
+    .print-box {
+        border: 2px solid #333;
+        padding: 25px;
+        border-radius: 10px;
+        background-color: #fff;
+        margin-top: 20px;
+        direction: rtl;
+    }
+    .print-header {
+        text-align: center;
+        border-bottom: 2px solid #333;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+    .print-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    .print-table th, .print-table td {
+        border: 1px solid #444;
+        padding: 8px 12px;
+        text-align: center;
+    }
+    .print-table th {
+        background-color: #f2f2f2;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -183,7 +231,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             "type": land_type
                         })
                         save_data()
-                        st.success(f"تم إضافة العميل ({owner_name}) بنجاح!")
+                        st.success(f"تم إضافه العميل ({owner_name}) بنجاح!")
                         st.rerun()
                 else:
                     st.error("يرجى إدخال اسم صاحب الأرض.")
@@ -369,6 +417,69 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             """)
                             st.success(f"## 💰 المبلغ الباقي للعميل نهائياً: {remaining_balance:,.2f} جنيه")
 
+                            # 🖨️ كشف الحساب التنسيقي المجهز للطباعة
+                            rows_html = ""
+                            for r in client_records:
+                                rows_html += f"""
+                                <tr>
+                                    <td>{r['date']}</td>
+                                    <td>{r.get('expense_desc', '-')}</td>
+                                    <td>{r.get('expense_amount', 0):,.2f}</td>
+                                    <td>{r.get('sader', 0):,.1f}</td>
+                                    <td>{r.get('second', 0):,.1f}</td>
+                                    <td>{r.get('farza', 0):,.1f}</td>
+                                    <td>{r.get('advanced_cash', 0):,.2f}</td>
+                                </tr>
+                                """
+
+                            print_html = f"""
+                            <div id="print-section">
+                                <div class="print-box">
+                                    <div class="print-header">
+                                        <h2>🌾 شركة الرحمة لإدارة الأراضي والمحاصيل</h2>
+                                        <p>📞 01019381124 | 01000108658</p>
+                                        <h3>📄 كشف حساب نهائي للعميل: {selected_client}</h3>
+                                        <p><b>التاريخ:</b> {datetime.date.today().strftime('%Y-%m-%d')} | <b>نوع التعامل:</b> بطاطا تحت الشرب</p>
+                                    </div>
+                                    <table class="print-table">
+                                        <thead>
+                                            <tr>
+                                                <th>التاريخ</th>
+                                                <th>المصروف</th>
+                                                <th>المبلغ</th>
+                                                <th>صادر</th>
+                                                <th>ثانية</th>
+                                                <th>فرزة</th>
+                                                <th>سلفة</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {rows_html}
+                                        </tbody>
+                                    </table>
+                                    <br>
+                                    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+                                        <p><b>إجمالي الوزن الخام:</b> {gross_weight:,.2f} كجم | <b>خصم ({active_discount}%):</b> {discount_value:,.2f} كجم</p>
+                                        <p><b>الوزن الصافي:</b> {net_weight:,.2f} كجم | <b>السعر:</b> {active_price:,.2f} جنيه</p>
+                                        <p><b>إجمالي قيمة المحصول:</b> {total_money_value:,.2f} جنيه</p>
+                                        <p><b>إجمالي السُلف والمسحوبات:</b> {total_advanced:,.2f} جنيه</p>
+                                        <hr>
+                                        <h3 style="color: green; text-align: center;">💰 المبلغ المتبقي للعميل: {remaining_balance:,.2f} جنيه</h3>
+                                    </div>
+                                    <br><br>
+                                    <div style="display: flex; justify-content: space-between; text-align: center;">
+                                        <div><b>توقيع العميل:</b> ..........................</div>
+                                        <div><b>توقيع الإدارة:</b> ..........................</div>
+                                    </div>
+                                </div>
+                            </div>
+                            """
+                            st.markdown(print_html, unsafe_allow_html=True)
+                            
+                            # زر طباعة تفاعلي بـ JavaScript
+                            if st.button("🖨️ طباعة كشف الحساب / حفظ PDF", type="primary"):
+                                st.components.v1.html("<script>window.parent.print();</script>", height=0)
+
                         else:
                             st.info("لا توجد حركات مسجلة لهذا العميل حتى الآن.")
 
@@ -519,6 +630,71 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             * **إجمالي الفلوس التي أخذها صاحب الأرض (سُلف):** {tot_adv_box:,.2f} جنيه
                             """)
                             st.success(f"### 💰 باقي له نهائياً: {final_box_rem:,.2f} جنيه")
+
+                            # 🖨️ كشف حساب البوكسة للطباعة
+                            rows_b_html = ""
+                            for r in box_records:
+                                d_lbl_b = "%" if r.get('disc_type') == "خصم بالنسبة (%)" else "كجم"
+                                rows_b_html += f"""
+                                <tr>
+                                    <td>{r['date']}</td>
+                                    <td>{r.get('expense_desc', '-')}</td>
+                                    <td>{r.get('expense_amount', 0):,.2f}</td>
+                                    <td>{r.get('raw_weight', 0):,.1f}</td>
+                                    <td>{r.get('discount_pct', 0)} {d_lbl_b}</td>
+                                    <td>{r.get('net_weight', 0):,.1f}</td>
+                                    <td>{r.get('price', 0):,.2f}</td>
+                                    <td>{r.get('advanced_cash', 0):,.2f}</td>
+                                </tr>
+                                """
+
+                            print_b_html = f"""
+                            <div id="print-section">
+                                <div class="print-box">
+                                    <div class="print-header">
+                                        <h2>🌾 شركة الرحمة لإدارة الأراضي والمحاصيل</h2>
+                                        <p>📞 01019381124 | 01000108658</p>
+                                        <h3>📄 كشف حساب صادر بوكسة للعميل: {selected_client}</h3>
+                                        <p><b>التاريخ:</b> {datetime.date.today().strftime('%Y-%m-%d')} | <b>نوع التعامل:</b> بطاطا صادر في البوكسة</p>
+                                    </div>
+                                    <table class="print-table">
+                                        <thead>
+                                            <tr>
+                                                <th>التاريخ</th>
+                                                <th>المصروف</th>
+                                                <th>المبلغ</th>
+                                                <th>الوزن الخام</th>
+                                                <th>الخصم</th>
+                                                <th>الصافي</th>
+                                                <th>السعر</th>
+                                                <th>السلفة</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {rows_b_html}
+                                        </tbody>
+                                    </table>
+                                    <br>
+                                    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+                                        <p><b>إجمالي الوزن الخام:</b> {tot_raw_box:,.2f} كجم | <b>إجمالي الصافي:</b> {tot_net_box:,.2f} كجم</p>
+                                        <p><b>إجمالي قيمة البطاطا:</b> {tot_price_box:,.2f} جنيه</p>
+                                        <p><b>إجمالي المصاريف + السُلف:</b> {tot_exp_box + tot_adv_box:,.2f} جنيه</p>
+                                        <hr>
+                                        <h3 style="color: green; text-align: center;">💰 المبلغ المتبقي للعميل: {final_box_rem:,.2f} جنيه</h3>
+                                    </div>
+                                    <br><br>
+                                    <div style="display: flex; justify-content: space-between; text-align: center;">
+                                        <div><b>توقيع العميل:</b> ..........................</div>
+                                        <div><b>توقيع الإدارة:</b> ..........................</div>
+                                    </div>
+                                </div>
+                            </div>
+                            """
+                            st.markdown(print_b_html, unsafe_allow_html=True)
+                            
+                            if st.button("🖨️ طباعة كشف الحساب / حفظ PDF", type="primary", key="btn_print_box"):
+                                st.components.v1.html("<script>window.parent.print();</script>", height=0)
+
                         else:
                             st.info("لا توجد حركات صادر في البوكسة مسجلة حتى الآن.")
         else:
