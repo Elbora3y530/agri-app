@@ -417,57 +417,32 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             """)
                             st.success(f"## 💰 المبلغ الباقي للعميل نهائياً: {remaining_balance:,.2f} جنيه")
 
-                            # 🖨️ كشف الحساب التنسيقي المجهز للطباعة
-                            rows_html = ""
-                            for r in client_records:
-                                rows_html += f"""
-                                <tr>
-                                    <td>{r['date']}</td>
-                                    <td>{r.get('expense_desc', '-')}</td>
-                                    <td>{r.get('expense_amount', 0):,.2f}</td>
-                                    <td>{r.get('sader', 0):,.1f}</td>
-                                    <td>{r.get('second', 0):,.1f}</td>
-                                    <td>{r.get('farza', 0):,.1f}</td>
-                                    <td>{r.get('advanced_cash', 0):,.2f}</td>
-                                </tr>
-                                """
-
+                            # 🖨️ كشف الحساب التنسيقي المجهز للطباعة (مطابق تماماً للصورة)
                             print_html = f"""
                             <div id="print-section">
                                 <div class="print-box">
                                     <div class="print-header">
                                         <h2>🌾 شركة الرحمة لإدارة الأراضي والمحاصيل</h2>
-                                        <p>📞 01019381124 | 01000108658</p>
-                                        <h3>📄 كشف حساب نهائي للعميل: {selected_client}</h3>
+                                        <p>📞 01000108658 | 01019381124</p>
+                                        <h3>📜 كشف حساب نهائي للعميل: {selected_client}</h3>
                                         <p><b>التاريخ:</b> {datetime.date.today().strftime('%Y-%m-%d')} | <b>نوع التعامل:</b> بطاطا تحت الشرب</p>
                                     </div>
-                                    <table class="print-table">
-                                        <thead>
-                                            <tr>
-                                                <th>التاريخ</th>
-                                                <th>المصروف</th>
-                                                <th>المبلغ</th>
-                                                <th>صادر</th>
-                                                <th>ثانية</th>
-                                                <th>فرزة</th>
-                                                <th>سلفة</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {rows_html}
-                                        </tbody>
-                                    </table>
-                                    <br>
-                                    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
-                                        <p><b>إجمالي الوزن الخام:</b> {gross_weight:,.2f} كجم | <b>خصم ({active_discount}%):</b> {discount_value:,.2f} كجم</p>
-                                        <p><b>الوزن الصافي:</b> {net_weight:,.2f} كجم | <b>السعر:</b> {active_price:,.2f} جنيه</p>
-                                        <p><b>إجمالي قيمة المحصول:</b> {total_money_value:,.2f} جنيه</p>
-                                        <p><b>إجمالي السُلف والمسحوبات:</b> {total_advanced:,.2f} جنيه</p>
-                                        <hr>
-                                        <h3 style="color: green; text-align: center;">💰 المبلغ المتبقي للعميل: {remaining_balance:,.2f} جنيه</h3>
+                                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; line-height: 2;">
+                                        <p>• <b>إجمالي وزن صادر خام:</b> {total_sader:,.2f} كجم</p>
+                                        <p>• <b>إجمالي وزن درجة ثانية خام:</b> {total_second:,.2f} كجم</p>
+                                        <p>• <b>إجمالي وزن فرزة خام:</b> {total_farza:,.2f} كجم</p>
+                                        <p>• <b>إجمالي الأوزان الخام بالكامل:</b> {gross_weight:,.2f} كجم</p>
+                                        <p>• <b>خصم نسبة ({active_discount}%):</b> {discount_value:,.2f} كجم</p>
+                                        <p>• <b>إجمالي الوزن الصافي بعد الخصم:</b> {net_weight:,.2f} كجم</p>
+                                        <p>• <b>إجمالي قيمة البطاطا (الوزن الصافي × السعر {active_price:,.2f} ج):</b> {total_money_value:,.2f} جنيه</p>
+                                        <p>• <b>إجمالي الفلوس التي أخذها العميل (سُلف نقدية):</b> {total_advanced:,.2f} جنيه</p>
                                     </div>
-                                    <br><br>
-                                    <div style="display: flex; justify-content: space-between; text-align: center;">
+                                    <br>
+                                    <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #c8e6c9; text-align: center;">
+                                        <h2 style="color: #2e7d32; margin: 0;">💰 المبلغ الباقي للعميل نهائياً: {remaining_balance:,.2f} جنيه</h2>
+                                    </div>
+                                    <br><br><br>
+                                    <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 50px;">
                                         <div><b>توقيع العميل:</b> ..........................</div>
                                         <div><b>توقيع الإدارة:</b> ..........................</div>
                                     </div>
@@ -476,7 +451,6 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             """
                             st.markdown(print_html, unsafe_allow_html=True)
                             
-                            # زر طباعة تفاعلي بـ JavaScript
                             if st.button("🖨️ طباعة كشف الحساب / حفظ PDF", type="primary"):
                                 st.components.v1.html("<script>window.parent.print();</script>", height=0)
 
@@ -632,58 +606,28 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             st.success(f"### 💰 باقي له نهائياً: {final_box_rem:,.2f} جنيه")
 
                             # 🖨️ كشف حساب البوكسة للطباعة
-                            rows_b_html = ""
-                            for r in box_records:
-                                d_lbl_b = "%" if r.get('disc_type') == "خصم بالنسبة (%)" else "كجم"
-                                rows_b_html += f"""
-                                <tr>
-                                    <td>{r['date']}</td>
-                                    <td>{r.get('expense_desc', '-')}</td>
-                                    <td>{r.get('expense_amount', 0):,.2f}</td>
-                                    <td>{r.get('raw_weight', 0):,.1f}</td>
-                                    <td>{r.get('discount_pct', 0)} {d_lbl_b}</td>
-                                    <td>{r.get('net_weight', 0):,.1f}</td>
-                                    <td>{r.get('price', 0):,.2f}</td>
-                                    <td>{r.get('advanced_cash', 0):,.2f}</td>
-                                </tr>
-                                """
-
                             print_b_html = f"""
                             <div id="print-section">
                                 <div class="print-box">
                                     <div class="print-header">
                                         <h2>🌾 شركة الرحمة لإدارة الأراضي والمحاصيل</h2>
-                                        <p>📞 01019381124 | 01000108658</p>
-                                        <h3>📄 كشف حساب صادر بوكسة للعميل: {selected_client}</h3>
+                                        <p>📞 01000108658 | 01019381124</p>
+                                        <h3>📜 كشف حساب نهائي للعميل: {selected_client}</h3>
                                         <p><b>التاريخ:</b> {datetime.date.today().strftime('%Y-%m-%d')} | <b>نوع التعامل:</b> بطاطا صادر في البوكسة</p>
                                     </div>
-                                    <table class="print-table">
-                                        <thead>
-                                            <tr>
-                                                <th>التاريخ</th>
-                                                <th>المصروف</th>
-                                                <th>المبلغ</th>
-                                                <th>الوزن الخام</th>
-                                                <th>الخصم</th>
-                                                <th>الصافي</th>
-                                                <th>السعر</th>
-                                                <th>السلفة</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {rows_b_html}
-                                        </tbody>
-                                    </table>
-                                    <br>
-                                    <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
-                                        <p><b>إجمالي الوزن الخام:</b> {tot_raw_box:,.2f} كجم | <b>إجمالي الصافي:</b> {tot_net_box:,.2f} كجم</p>
-                                        <p><b>إجمالي قيمة البطاطا:</b> {tot_price_box:,.2f} جنيه</p>
-                                        <p><b>إجمالي المصاريف + السُلف:</b> {tot_exp_box + tot_adv_box:,.2f} جنيه</p>
-                                        <hr>
-                                        <h3 style="color: green; text-align: center;">💰 المبلغ المتبقي للعميل: {final_box_rem:,.2f} جنيه</h3>
+                                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; line-height: 2;">
+                                        <p>• <b>إجمالي المصاريف:</b> {tot_exp_box:,.2f} جنيه</p>
+                                        <p>• <b>إجمالي وزن البطاطا الصادر (خام):</b> {tot_raw_box:,.2f} كجم</p>
+                                        <p>• <b>إجمالي وزن البطاطا بعد الخصم:</b> {tot_net_box:,.2f} كجم</p>
+                                        <p>• <b>إجمالي سعر البطاطا:</b> {tot_price_box:,.2f} جنيه</p>
+                                        <p>• <b>إجمالي الفلوس التي أخذها العميل (سُلف نقدية):</b> {tot_adv_box:,.2f} جنيه</p>
                                     </div>
-                                    <br><br>
-                                    <div style="display: flex; justify-content: space-between; text-align: center;">
+                                    <br>
+                                    <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #c8e6c9; text-align: center;">
+                                        <h2 style="color: #2e7d32; margin: 0;">💰 المبلغ الباقي للعميل نهائياً: {final_box_rem:,.2f} جنيه</h2>
+                                    </div>
+                                    <br><br><br>
+                                    <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 50px;">
                                         <div><b>توقيع العميل:</b> ..........................</div>
                                         <div><b>توقيع الإدارة:</b> ..........................</div>
                                     </div>
@@ -898,6 +842,40 @@ elif app_mode == "2. التوريد للمحطات":
                                         save_data()
                                         st.success("تم التعديل بنجاح!")
                                         st.rerun()
+
+                        # 🖨️ كشف حساب المحطة المجهز للطباعة
+                        print_st_html = f"""
+                        <div id="print-section">
+                            <div class="print-box">
+                                <div class="print-header">
+                                    <h2>🌾 شركة الرحمة لإدارة الأراضي والمحاصيل</h2>
+                                    <p>📞 01000108658 | 01019381124</p>
+                                    <h3>📜 كشف حساب نهائي للمحطة: {selected_station}</h3>
+                                    <p><b>التاريخ:</b> {datetime.date.today().strftime('%Y-%m-%d')} | <b>تليفون المحطة:</b> {st_info['phone']}</p>
+                                </div>
+                                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; line-height: 2;">
+                                    <p>• <b>إجمالي الوزن الخام:</b> {total_raw_w:,.2f} كجم</p>
+                                    <p>• <b>إجمالي الوزن الصافي بعد الخصم:</b> {total_net_w:,.2f} كجم</p>
+                                    <p>• <b>إجمالي قيمة المحصول المستحقة:</b> {total_station_money:,.2f} جنيه</p>
+                                    <p>• <b>إجمالي المبلغ المدفوع من المحطة:</b> {total_station_paid:,.2f} جنيه</p>
+                                </div>
+                                <br>
+                                <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #bbdefb; text-align: center;">
+                                    <h2 style="color: #1565c0; margin: 0;">💰 المبلغ الباقي لشركة الرحمة عند المحطة: {remaining_on_station:,.2f} جنيه</h2>
+                                </div>
+                                <br><br><br>
+                                <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 50px;">
+                                    <div><b>توقيع إدارة المحطة:</b> ..........................</div>
+                                    <div><b>توقيع إدارة الشركة:</b> ..........................</div>
+                                </div>
+                            </div>
+                        </div>
+                        """
+                        st.markdown(print_st_html, unsafe_allow_html=True)
+
+                        if st.button("🖨️ طباعة كشف حساب المحطة / حفظ PDF", type="primary", key="btn_print_st"):
+                            st.components.v1.html("<script>window.parent.print();</script>", height=0)
+
                     else:
                         st.info("لا توجد توريدات مسجلة لهذه المحطة حتى الآن.")
         else:
