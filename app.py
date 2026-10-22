@@ -183,7 +183,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             "type": land_type
                         })
                         save_data()
-                        st.success(f"تم إنشاء صفحة للعميل ({owner_name}) نوع ({land_type}) بنجاح!")
+                        st.success(f"تم إضافة العميل ({owner_name}) بنجاح!")
                         st.rerun()
                 else:
                     st.error("يرجى إدخال اسم صاحب الأرض.")
@@ -255,7 +255,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                     "advanced_cash": clean_float(advanced_in)
                                 })
                                 save_data()
-                                st.success(f"تمت إضافة الحركة بنجاح إلى صفحة {selected_client}!")
+                                st.success("تم إضافه الحركه بنجاح!")
                                 st.rerun()
 
                         st.markdown("---")
@@ -284,11 +284,41 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                 with cols_row[5]: st.write(f"{record.get('farza', 0):,.1f}")
                                 with cols_row[6]: st.write(f"{record.get('advanced_cash', 0):,.2f} ج")
                                 with cols_row[7]:
-                                    if st.button("🗑️", key=f"del_c_{selected_client}_{idx}"):
-                                        st.session_state.land_accounts.remove(record)
-                                        save_data()
-                                        st.success("تم الحذف بنجاح!")
-                                        st.rerun()
+                                    c_edit, c_del = st.columns(2)
+                                    with c_edit:
+                                        if st.button("✏️", key=f"edit_c_{selected_client}_{idx}"):
+                                            st.session_state[f"editing_c_{selected_client}_{idx}"] = True
+                                    with c_del:
+                                        if st.button("🗑️", key=f"del_c_{selected_client}_{idx}"):
+                                            st.session_state.land_accounts.remove(record)
+                                            save_data()
+                                            st.success("تم الحذف بنجاح!")
+                                            st.rerun()
+
+                                # نافذة التعديل للحركة
+                                if st.session_state.get(f"editing_c_{selected_client}_{idx}", False):
+                                    with st.form(f"form_edit_c_{selected_client}_{idx}"):
+                                        st.write("✏️ **تعديل الحركة:**")
+                                        ed_date = st.date_input("التاريخ", value=datetime.datetime.strptime(record['date'], "%Y-%m-%d").date())
+                                        ed_desc = st.text_input("نوع المصروف", value=record.get('expense_desc', ''))
+                                        ed_exp = st.text_input("قيمة المصروف", value=str(record.get('expense_amount', 0)))
+                                        ed_sad = st.text_input("وارد صادر", value=str(record.get('sader', 0)))
+                                        ed_sec = st.text_input("وارد درجة ثانية", value=str(record.get('second', 0)))
+                                        ed_far = st.text_input("وارد فرزة", value=str(record.get('farza', 0)))
+                                        ed_adv = st.text_input("سلفة نقدية", value=str(record.get('advanced_cash', 0)))
+
+                                        if st.form_submit_button("💾 حفظ التعديل"):
+                                            record['date'] = str(ed_date)
+                                            record['expense_desc'] = ed_desc
+                                            record['expense_amount'] = clean_float(ed_exp)
+                                            record['sader'] = clean_float(ed_sad)
+                                            record['second'] = clean_float(ed_sec)
+                                            record['farza'] = clean_float(ed_far)
+                                            record['advanced_cash'] = clean_float(ed_adv)
+                                            st.session_state[f"editing_c_{selected_client}_{idx}"] = False
+                                            save_data()
+                                            st.success("تم التعديل بنجاح!")
+                                            st.rerun()
 
                             st.markdown("---")
                             st.markdown("### 🧮 تصفية الحساب النهائي للعميل (بطاطا تحت الشرب):")
@@ -389,7 +419,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                     "advanced_cash": clean_float(b_adv_in)
                                 })
                                 save_data()
-                                st.success("تم حفظ الحركة بنجاح!")
+                                st.success("تم إضافه الحركه بنجاح!")
                                 st.rerun()
 
                         st.markdown("---")
@@ -422,11 +452,56 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                 with cols_brow[6]: st.write(f"{b_rec.get('price', 0):,.2f}")
                                 with cols_brow[7]: st.write(f"{b_rec.get('advanced_cash', 0):,.2f} ج")
                                 with cols_brow[8]:
-                                    if st.button("🗑️", key=f"del_box_{selected_client}_{b_idx}"):
-                                        st.session_state.land_accounts.remove(b_rec)
-                                        save_data()
-                                        st.success("تم الحذف بنجاح!")
-                                        st.rerun()
+                                    c_bedit, c_bdel = st.columns(2)
+                                    with c_bedit:
+                                        if st.button("✏️", key=f"edit_box_{selected_client}_{b_idx}"):
+                                            st.session_state[f"editing_box_{selected_client}_{b_idx}"] = True
+                                    with c_bdel:
+                                        if st.button("🗑️", key=f"del_box_{selected_client}_{b_idx}"):
+                                            st.session_state.land_accounts.remove(b_rec)
+                                            save_data()
+                                            st.success("تم الحذف بنجاح!")
+                                            st.rerun()
+
+                                # نافذة تعديل صادر البوكسة
+                                if st.session_state.get(f"editing_box_{selected_client}_{b_idx}", False):
+                                    with st.form(f"form_edit_box_{selected_client}_{b_idx}"):
+                                        st.write("✏️ **تعديل حركة البوكسة:**")
+                                        eb_date = st.date_input("التاريخ", value=datetime.datetime.strptime(b_rec['date'], "%Y-%m-%d").date())
+                                        eb_desc = st.text_input("المصروف", value=b_rec.get('expense_desc', ''))
+                                        eb_exp = st.text_input("قيمة المصروف", value=str(b_rec.get('expense_amount', 0)))
+                                        eb_raw = st.text_input("الوزن الخام", value=str(b_rec.get('raw_weight', 0)))
+                                        eb_disc_type = st.radio("نوع الخصم", ["خصم بالنسبة (%)", "خصم بالكيلو"], index=0 if b_rec.get('disc_type') == "خصم بالنسبة (%)" else 1)
+                                        eb_disc = st.text_input("قيمة الخصم", value=str(b_rec.get('discount_pct', 0)))
+                                        eb_prc = st.text_input("السعر", value=str(b_rec.get('price', 0)))
+                                        eb_adv = st.text_input("السلفة", value=str(b_rec.get('advanced_cash', 0)))
+
+                                        if st.form_submit_button("💾 حفظ التعديل"):
+                                            r_w = clean_float(eb_raw)
+                                            d_v = clean_float(eb_disc)
+                                            p_c = clean_float(eb_prc)
+                                            
+                                            if eb_disc_type == "خصم بالنسبة (%)":
+                                                c_n = r_w - (r_w * (d_v / 100.0))
+                                            else:
+                                                c_n = max(0.0, r_w - d_v)
+                                                
+                                            c_t = c_n * p_c
+
+                                            b_rec['date'] = str(eb_date)
+                                            b_rec['expense_desc'] = eb_desc
+                                            b_rec['expense_amount'] = clean_float(eb_exp)
+                                            b_rec['raw_weight'] = r_w
+                                            b_rec['disc_type'] = eb_disc_type
+                                            b_rec['discount_pct'] = d_v
+                                            b_rec['net_weight'] = c_n
+                                            b_rec['price'] = p_c
+                                            b_rec['total_price'] = c_t
+                                            b_rec['advanced_cash'] = clean_float(eb_adv)
+                                            st.session_state[f"editing_box_{selected_client}_{b_idx}"] = False
+                                            save_data()
+                                            st.success("تم التعديل بنجاح!")
+                                            st.rerun()
 
                             tot_exp_box = sum(r.get('expense_amount', 0) for r in box_records)
                             tot_raw_box = sum(r.get('raw_weight', 0) for r in box_records)
@@ -477,7 +552,7 @@ elif app_mode == "2. التوريد للمحطات":
                     else:
                         st.session_state.stations.append({"name": st_name_input.strip(), "phone": st_phone_input.strip()})
                         save_data()
-                        st.success(f"تمت إضافة المحطة ({st_name_input.strip()}) بنجاح!")
+                        st.success("تم إضافه المحطة بنجاح!")
                         st.rerun()
                 else:
                     st.error("يرجى إدخال اسم المحطة.")
@@ -567,7 +642,7 @@ elif app_mode == "2. التوريد للمحطات":
                                 "paid_amount": clean_float(paid_today_in)
                             })
                             save_data()
-                            st.success("تم حفظ التوريد بنجاح!")
+                            st.success("تم إضافه الحركه بنجاح!")
                             st.rerun()
 
                     st.markdown("---")
@@ -599,11 +674,54 @@ elif app_mode == "2. التوريد للمحطات":
                             with cols_row[6]: st.write(f"**{s_rec.get('total_money', 0):,.2f} ج**")
                             with cols_row[7]: st.write(f"{s_rec.get('paid_amount', 0):,.2f} ج")
                             with cols_row[8]:
-                                if st.button("🗑️", key=f"del_st_{selected_station}_{idx_st}"):
-                                    st.session_state.station_supplies.remove(s_rec)
-                                    save_data()
-                                    st.success("تم الحذف بنجاح!")
-                                    st.rerun()
+                                c_sedit, c_sdel = st.columns(2)
+                                with c_sedit:
+                                    if st.button("✏️", key=f"edit_st_{selected_station}_{idx_st}"):
+                                        st.session_state[f"editing_st_{selected_station}_{idx_st}"] = True
+                                with c_sdel:
+                                    if st.button("🗑️", key=f"del_st_{selected_station}_{idx_st}"):
+                                        st.session_state.station_supplies.remove(s_rec)
+                                        save_data()
+                                        st.success("تم الحذف بنجاح!")
+                                        st.rerun()
+
+                            # نافذة تعديل توريد المحطة
+                            if st.session_state.get(f"editing_st_{selected_station}_{idx_st}", False):
+                                with st.form(f"form_edit_st_{selected_station}_{idx_st}"):
+                                    st.write("✏️ **تعديل توريد المحطة:**")
+                                    es_date = st.date_input("التاريخ", value=datetime.datetime.strptime(s_rec['date'], "%Y-%m-%d").date())
+                                    es_car = st.text_input("رقم السيارة", value=s_rec.get('car', ''))
+                                    es_raw = st.text_input("الوزن الخام", value=str(s_rec.get('weight', 0)))
+                                    es_disc_type = st.radio("نوع الخصم", ["خصم بالنسبة (%)", "خصم بالكيلو"], index=0 if s_rec.get('disc_type') == "خصم بالنسبة (%)" else 1)
+                                    es_disc = st.text_input("قيمة الخصم", value=str(s_rec.get('discount', 0)))
+                                    es_prc = st.text_input("السعر", value=str(s_rec.get('price', 0)))
+                                    es_paid = st.text_input("المبلغ المدفوع", value=str(s_rec.get('paid_amount', 0)))
+
+                                    if st.form_submit_button("💾 حفظ التعديل"):
+                                        r_w = clean_float(es_raw)
+                                        d_v = clean_float(es_disc)
+                                        p_s = clean_float(es_prc)
+                                        
+                                        if es_disc_type == "خصم بالنسبة (%)":
+                                            c_n = r_w - (r_w * (d_v / 100.0))
+                                        else:
+                                            c_n = max(0.0, r_w - d_v)
+
+                                        c_t = c_n * p_s
+
+                                        s_rec['date'] = str(es_date)
+                                        s_rec['car'] = es_car
+                                        s_rec['weight'] = r_w
+                                        s_rec['disc_type'] = es_disc_type
+                                        s_rec['discount'] = d_v
+                                        s_rec['net_weight'] = c_n
+                                        s_rec['price'] = p_s
+                                        s_rec['total_money'] = c_t
+                                        s_rec['paid_amount'] = clean_float(es_paid)
+                                        st.session_state[f"editing_st_{selected_station}_{idx_st}"] = False
+                                        save_data()
+                                        st.success("تم التعديل بنجاح!")
+                                        st.rerun()
                     else:
                         st.info("لا توجد توريدات مسجلة لهذه المحطة حتى الآن.")
         else:
