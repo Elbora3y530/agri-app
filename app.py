@@ -59,7 +59,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# تنسيقات CSS وإعدادات الطباعة لضمان ظهور الصفحة في ورقة A4 واحدة
+# 🖨️ الحل النهائي لتثبيت الطباعة في صفحة A4 واحدة تماماً وإلغاء بقية صفحات Streamlit
 st.markdown("""
     <style>
     input[type=number]::-webkit-inner-spin-button,
@@ -79,28 +79,43 @@ st.markdown("""
         margin-bottom: 15px;
     }
     
-    /* 🖨️ تخصيص الطباعة لتكون صفحة A4 واحدة بالظبط */
     @media print {
         @page {
             size: A4 portrait;
-            margin: 10mm;
+            margin: 0mm;
+        }
+        html, body {
+            height: 100%;
+            overflow: hidden !important;
+            background: #fff !important;
+        }
+        /* إخفاء كل عناصر تطبيق streamlit بالكامل */
+        [data-testid="stSidebar"], 
+        header, 
+        footer, 
+        .stButton, 
+        .main .block-container > div:not(#print-section) {
+            display: none !important;
         }
         body * {
             visibility: hidden;
         }
         #print-section, #print-section * {
-            visibility: visible;
+            visibility: visible !important;
         }
         #print-section {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
+            position: fixed !important;
+            top: 10mm !important;
+            right: 10mm !important;
+            left: 10mm !important;
+            width: 190mm !important;
+            max-height: 275mm !important;
             direction: rtl;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .no-print {
-            display: none !important;
+            background: white !important;
+            box-sizing: border-box;
+            page-break-after: avoid !important;
+            page-break-inside: avoid !important;
         }
     }
     .print-box {
@@ -108,35 +123,35 @@ st.markdown("""
         padding: 15px;
         border-radius: 10px;
         background-color: #fff;
-        margin: 0 auto;
         direction: rtl;
-        max-width: 190mm;
+        width: 100%;
+        box-sizing: border-box;
     }
     .print-header {
         text-align: center;
         border-bottom: 2px solid #333;
-        padding-bottom: 10px;
-        margin-bottom: 15px;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
     }
     .print-header h2 {
-        font-size: 20px;
-        margin: 5px 0;
+        font-size: 18px;
+        margin: 3px 0;
     }
     .print-header h3 {
-        font-size: 16px;
-        margin: 5px 0;
+        font-size: 15px;
+        margin: 3px 0;
     }
     .print-content {
         background-color: #f8f9fa;
-        padding: 12px;
+        padding: 10px 15px;
         border-radius: 8px;
         border: 1px solid #e0e0e0;
-        line-height: 1.6;
-        font-size: 14px;
+        line-height: 1.8;
+        font-size: 13px;
     }
     .print-footer {
         background-color: #e8f5e9;
-        padding: 10px;
+        padding: 8px;
         border-radius: 8px;
         border: 1px solid #c8e6c9;
         text-align: center;
@@ -433,7 +448,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             """)
                             st.success(f"## 💰 المبلغ الباقي للعميل نهائياً: {remaining_balance:,.2f} جنيه")
 
-                            # 🖨️ قالب الطباعة المخصص لصفحة A4 واحدة
+                            # 🖨️ كشف حساب للطباعة مثبت لصفحة A4 واحدة
                             print_html = f"""
                             <div id="print-section">
                                 <div class="print-box">
@@ -456,8 +471,8 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                     <div class="print-footer">
                                         <h3 style="color: #2e7d32; margin: 0;">💰 المبلغ الباقي للعميل نهائياً: {remaining_balance:,.2f} جنيه</h3>
                                     </div>
-                                    <br>
-                                    <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 30px; font-size: 14px;">
+                                    <br><br>
+                                    <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 30px; font-size: 13px;">
                                         <div><b>توقيع العميل:</b> ..........................</div>
                                         <div><b>توقيع الإدارة:</b> ..........................</div>
                                     </div>
@@ -640,8 +655,8 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                     <div class="print-footer">
                                         <h3 style="color: #2e7d32; margin: 0;">💰 المبلغ الباقي للعميل نهائياً: {final_box_rem:,.2f} جنيه</h3>
                                     </div>
-                                    <br>
-                                    <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 30px; font-size: 14px;">
+                                    <br><br>
+                                    <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 30px; font-size: 13px;">
                                         <div><b>توقيع العميل:</b> ..........................</div>
                                         <div><b>توقيع الإدارة:</b> ..........................</div>
                                     </div>
@@ -857,7 +872,7 @@ elif app_mode == "2. التوريد للمحطات":
                                         st.success("تم التعديل بنجاح!")
                                         st.rerun()
 
-                        # 🖨️ كشف حساب المحطة المجهز للطباعة في صفحة A4 واحدة
+                        # 🖨️ كشف حساب المحطة للطباعة في صفحة A4 واحدة
                         print_st_html = f"""
                         <div id="print-section">
                             <div class="print-box">
@@ -876,8 +891,8 @@ elif app_mode == "2. التوريد للمحطات":
                                 <div style="background-color: #e3f2fd; padding: 10px; border-radius: 8px; border: 1px solid #bbdefb; text-align: center; margin-top: 10px;">
                                     <h3 style="color: #1565c0; margin: 0;">💰 المبلغ الباقي لشركة الرحمة عند المحطة: {remaining_on_station:,.2f} جنيه</h3>
                                 </div>
-                                <br>
-                                <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 30px; font-size: 14px;">
+                                <br><br>
+                                <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 30px; font-size: 13px;">
                                     <div><b>توقيع إدارة المحطة:</b> ..........................</div>
                                     <div><b>توقيع إدارة الشركة:</b> ..........................</div>
                                 </div>
