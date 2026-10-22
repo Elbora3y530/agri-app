@@ -59,7 +59,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# تنسيقات CSS وإعدادات الطباعة
+# تنسيقات CSS وإعدادات الطباعة لضمان ظهور الصفحة في ورقة A4 واحدة
 st.markdown("""
     <style>
     input[type=number]::-webkit-inner-spin-button,
@@ -79,8 +79,12 @@ st.markdown("""
         margin-bottom: 15px;
     }
     
-    /* تنسيقات كشف الحساب المخصص للطباعة */
+    /* 🖨️ تخصيص الطباعة لتكون صفحة A4 واحدة بالظبط */
     @media print {
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
         body * {
             visibility: hidden;
         }
@@ -101,30 +105,42 @@ st.markdown("""
     }
     .print-box {
         border: 2px solid #333;
-        padding: 25px;
+        padding: 15px;
         border-radius: 10px;
         background-color: #fff;
-        margin-top: 20px;
+        margin: 0 auto;
         direction: rtl;
+        max-width: 190mm;
     }
     .print-header {
         text-align: center;
         border-bottom: 2px solid #333;
-        padding-bottom: 15px;
-        margin-bottom: 20px;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
     }
-    .print-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 15px;
+    .print-header h2 {
+        font-size: 20px;
+        margin: 5px 0;
     }
-    .print-table th, .print-table td {
-        border: 1px solid #444;
-        padding: 8px 12px;
+    .print-header h3 {
+        font-size: 16px;
+        margin: 5px 0;
+    }
+    .print-content {
+        background-color: #f8f9fa;
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        line-height: 1.6;
+        font-size: 14px;
+    }
+    .print-footer {
+        background-color: #e8f5e9;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #c8e6c9;
         text-align: center;
-    }
-    .print-table th {
-        background-color: #f2f2f2;
+        margin-top: 10px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -417,7 +433,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             """)
                             st.success(f"## 💰 المبلغ الباقي للعميل نهائياً: {remaining_balance:,.2f} جنيه")
 
-                            # 🖨️ كشف الحساب التنسيقي المجهز للطباعة (مطابق تماماً للصورة)
+                            # 🖨️ قالب الطباعة المخصص لصفحة A4 واحدة
                             print_html = f"""
                             <div id="print-section">
                                 <div class="print-box">
@@ -427,7 +443,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                         <h3>📜 كشف حساب نهائي للعميل: {selected_client}</h3>
                                         <p><b>التاريخ:</b> {datetime.date.today().strftime('%Y-%m-%d')} | <b>نوع التعامل:</b> بطاطا تحت الشرب</p>
                                     </div>
-                                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; line-height: 2;">
+                                    <div class="print-content">
                                         <p>• <b>إجمالي وزن صادر خام:</b> {total_sader:,.2f} كجم</p>
                                         <p>• <b>إجمالي وزن درجة ثانية خام:</b> {total_second:,.2f} كجم</p>
                                         <p>• <b>إجمالي وزن فرزة خام:</b> {total_farza:,.2f} كجم</p>
@@ -437,12 +453,11 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                         <p>• <b>إجمالي قيمة البطاطا (الوزن الصافي × السعر {active_price:,.2f} ج):</b> {total_money_value:,.2f} جنيه</p>
                                         <p>• <b>إجمالي الفلوس التي أخذها العميل (سُلف نقدية):</b> {total_advanced:,.2f} جنيه</p>
                                     </div>
-                                    <br>
-                                    <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #c8e6c9; text-align: center;">
-                                        <h2 style="color: #2e7d32; margin: 0;">💰 المبلغ الباقي للعميل نهائياً: {remaining_balance:,.2f} جنيه</h2>
+                                    <div class="print-footer">
+                                        <h3 style="color: #2e7d32; margin: 0;">💰 المبلغ الباقي للعميل نهائياً: {remaining_balance:,.2f} جنيه</h3>
                                     </div>
-                                    <br><br><br>
-                                    <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 50px;">
+                                    <br>
+                                    <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 30px; font-size: 14px;">
                                         <div><b>توقيع العميل:</b> ..........................</div>
                                         <div><b>توقيع الإدارة:</b> ..........................</div>
                                     </div>
@@ -451,7 +466,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             """
                             st.markdown(print_html, unsafe_allow_html=True)
                             
-                            if st.button("🖨️ طباعة كشف الحساب / حفظ PDF", type="primary"):
+                            if st.button("🖨️ طباعة كشف الحساب / حفظ PDF (A4)", type="primary"):
                                 st.components.v1.html("<script>window.parent.print();</script>", height=0)
 
                         else:
@@ -605,7 +620,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             """)
                             st.success(f"### 💰 باقي له نهائياً: {final_box_rem:,.2f} جنيه")
 
-                            # 🖨️ كشف حساب البوكسة للطباعة
+                            # 🖨️ كشف حساب البوكسة للطباعة في صفحة A4 واحدة
                             print_b_html = f"""
                             <div id="print-section">
                                 <div class="print-box">
@@ -615,19 +630,18 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                         <h3>📜 كشف حساب نهائي للعميل: {selected_client}</h3>
                                         <p><b>التاريخ:</b> {datetime.date.today().strftime('%Y-%m-%d')} | <b>نوع التعامل:</b> بطاطا صادر في البوكسة</p>
                                     </div>
-                                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; line-height: 2;">
+                                    <div class="print-content">
                                         <p>• <b>إجمالي المصاريف:</b> {tot_exp_box:,.2f} جنيه</p>
                                         <p>• <b>إجمالي وزن البطاطا الصادر (خام):</b> {tot_raw_box:,.2f} كجم</p>
                                         <p>• <b>إجمالي وزن البطاطا بعد الخصم:</b> {tot_net_box:,.2f} كجم</p>
                                         <p>• <b>إجمالي سعر البطاطا:</b> {tot_price_box:,.2f} جنيه</p>
                                         <p>• <b>إجمالي الفلوس التي أخذها العميل (سُلف نقدية):</b> {tot_adv_box:,.2f} جنيه</p>
                                     </div>
-                                    <br>
-                                    <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #c8e6c9; text-align: center;">
-                                        <h2 style="color: #2e7d32; margin: 0;">💰 المبلغ الباقي للعميل نهائياً: {final_box_rem:,.2f} جنيه</h2>
+                                    <div class="print-footer">
+                                        <h3 style="color: #2e7d32; margin: 0;">💰 المبلغ الباقي للعميل نهائياً: {final_box_rem:,.2f} جنيه</h3>
                                     </div>
-                                    <br><br><br>
-                                    <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 50px;">
+                                    <br>
+                                    <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 30px; font-size: 14px;">
                                         <div><b>توقيع العميل:</b> ..........................</div>
                                         <div><b>توقيع الإدارة:</b> ..........................</div>
                                     </div>
@@ -636,7 +650,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             """
                             st.markdown(print_b_html, unsafe_allow_html=True)
                             
-                            if st.button("🖨️ طباعة كشف الحساب / حفظ PDF", type="primary", key="btn_print_box"):
+                            if st.button("🖨️ طباعة كشف الحساب / حفظ PDF (A4)", type="primary", key="btn_print_box"):
                                 st.components.v1.html("<script>window.parent.print();</script>", height=0)
 
                         else:
@@ -843,7 +857,7 @@ elif app_mode == "2. التوريد للمحطات":
                                         st.success("تم التعديل بنجاح!")
                                         st.rerun()
 
-                        # 🖨️ كشف حساب المحطة المجهز للطباعة
+                        # 🖨️ كشف حساب المحطة المجهز للطباعة في صفحة A4 واحدة
                         print_st_html = f"""
                         <div id="print-section">
                             <div class="print-box">
@@ -853,18 +867,17 @@ elif app_mode == "2. التوريد للمحطات":
                                     <h3>📜 كشف حساب نهائي للمحطة: {selected_station}</h3>
                                     <p><b>التاريخ:</b> {datetime.date.today().strftime('%Y-%m-%d')} | <b>تليفون المحطة:</b> {st_info['phone']}</p>
                                 </div>
-                                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; line-height: 2;">
+                                <div class="print-content">
                                     <p>• <b>إجمالي الوزن الخام:</b> {total_raw_w:,.2f} كجم</p>
                                     <p>• <b>إجمالي الوزن الصافي بعد الخصم:</b> {total_net_w:,.2f} كجم</p>
                                     <p>• <b>إجمالي قيمة المحصول المستحقة:</b> {total_station_money:,.2f} جنيه</p>
                                     <p>• <b>إجمالي المبلغ المدفوع من المحطة:</b> {total_station_paid:,.2f} جنيه</p>
                                 </div>
-                                <br>
-                                <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; border: 1px solid #bbdefb; text-align: center;">
-                                    <h2 style="color: #1565c0; margin: 0;">💰 المبلغ الباقي لشركة الرحمة عند المحطة: {remaining_on_station:,.2f} جنيه</h2>
+                                <div style="background-color: #e3f2fd; padding: 10px; border-radius: 8px; border: 1px solid #bbdefb; text-align: center; margin-top: 10px;">
+                                    <h3 style="color: #1565c0; margin: 0;">💰 المبلغ الباقي لشركة الرحمة عند المحطة: {remaining_on_station:,.2f} جنيه</h3>
                                 </div>
-                                <br><br><br>
-                                <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 50px;">
+                                <br>
+                                <div style="display: flex; justify-content: space-between; text-align: center; padding: 0 30px; font-size: 14px;">
                                     <div><b>توقيع إدارة المحطة:</b> ..........................</div>
                                     <div><b>توقيع إدارة الشركة:</b> ..........................</div>
                                 </div>
@@ -873,7 +886,7 @@ elif app_mode == "2. التوريد للمحطات":
                         """
                         st.markdown(print_st_html, unsafe_allow_html=True)
 
-                        if st.button("🖨️ طباعة كشف حساب المحطة / حفظ PDF", type="primary", key="btn_print_st"):
+                        if st.button("🖨️ طباعة كشف حساب المحطة / حفظ PDF (A4)", type="primary", key="btn_print_st"):
                             st.components.v1.html("<script>window.parent.print();</script>", height=0)
 
                     else:
