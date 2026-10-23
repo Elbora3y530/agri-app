@@ -4,6 +4,8 @@ import pandas as pd
 import datetime
 import json
 import os
+import base64
+import requests
 
 # ==========================================
 # 🔐 إعدادات كلمة السر وملف الحفظ الدائم
@@ -11,20 +13,44 @@ import os
 PASSWORD = "332007"
 DATA_FILE = "agri_data.json"
 
-def save_data():
-    data = {
-        "lands": st.session_state.lands,
-        "land_accounts": st.session_state.land_accounts,
-        "stations": st.session_state.stations,
-        "station_supplies": st.session_state.station_supplies,
-        "saved_profits": st.session_state.saved_profits,
-        "client_settings": st.session_state.client_settings,
-        "last_date": str(st.session_state.last_date)
-    }
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+# استدعاء بيانات الربط مع GitHub
+GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", "")
+GITHUB_REPO = st.secrets.get("GITHUB_REPO", "")
+
+def get_github_file_info():
+    if not GITHUB_TOKEN or not GITHUB_REPO:
+        return None
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{DATA_FILE}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            return response.json()
+    except Exception:
+        pass
+    return None
 
 def load_data():
+    file_info = get_github_file_info()
+    if file_info and "content" in file_info:
+        try:
+            content = base64.b64decode(file_info["content"]).decode("utf-8")
+            data = json.loads(content)
+            st.session_state.lands = data.get("lands", [])
+            st.session_state.land_accounts = data.get("land_accounts", [])
+            st.session_state.stations = data.get("stations", [])
+            st.session_state.station_supplies = data.get("station_supplies", [])
+            st.session_state.saved_profits = data.get("saved_profits", {})
+            st.session_state.client_settings = data.get("client_settings", {})
+            last_d_str = data.get("last_date", str(datetime.date.today()))
+            try:
+                st.session_state.last_date = datetime.datetime.strptime(last_d_str, "%Y-%m-%d").date()
+            except Exception:
+                st.session_state.last_date = datetime.date.today()
+            return
+        except Exception as e:
+            st.error(f"خطأ في تحميل البيانات من GitHub: {e}")
+            
     if os.path.exists(DATA_FILE):
         try:
             with open(DATA_FILE, "r", encoding="utf-8") as f:
@@ -35,14 +61,52 @@ def load_data():
                 st.session_state.station_supplies = data.get("station_supplies", [])
                 st.session_state.saved_profits = data.get("saved_profits", {})
                 st.session_state.client_settings = data.get("client_settings", {})
-                
                 last_d_str = data.get("last_date", str(datetime.date.today()))
                 try:
                     st.session_state.last_date = datetime.datetime.strptime(last_d_str, "%Y-%m-%d").date()
                 except Exception:
                     st.session_state.last_date = datetime.date.today()
-        except Exception:
-            pass
+        except Exception as e:
+            st.error(f"خطأ في تحميل البيانات المحلية: {e}")
+
+def save_data():
+    data = {
+        "lands": st.session_state.get("lands", []),
+        "land_accounts": st.session_state.get("land_accounts", []),
+        "stations": st.session_state.get("stations", []),
+        "station_supplies": st.session_state.get("station_supplies", []),
+        "saved_profits": st.session_state.get("saved_profits", {}),
+        "client_settings": st.session_state.get("client_settings", {}),
+        "last_date": str(st.session_state.get("last_date", datetime.date.today()))
+    }
+    
+    try:
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+    except Exception:
+        pass
+
+    if GITHUB_TOKEN and GITHUB_REPO:
+        try:
+            file_info = get_github_file_info()
+            sha = file_info["sha"] if file_info else None
+            
+            json_str = json.dumps(data, ensure_ascii=False, indent=4)
+            encoded_content = base64.b64encode(json_str.encode("utf-8")).decode("utf-8")
+            
+            url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{DATA_FILE}"
+            headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+            
+            payload = {
+                "message": "تحديث تلقائي للبيانات 🌾",
+                "content": encoded_content
+            }
+            if sha:
+                payload["sha"] = sha
+
+            requests.put(url, headers=headers, json=payload)
+        except Exception as e:
+            st.error(f"خطأ أثناء الحفظ على GitHub: {e}")
 
 def clean_float(val):
     try:
