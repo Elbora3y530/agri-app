@@ -6,6 +6,52 @@ import json
 import os
 import base64
 import requests
+from supabase import create_client, Client
+
+# قراءة مفاتيح الاتصال من Streamlit Secrets
+SUPABASE_URL = st.secrets.get("SUPABASE_URL", "")
+SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", "")
+
+# إنشاء اتصال مع قاعدة البيانات
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+
+def load_data():
+  try:
+    response = (
+        supabase.table("app_state")
+        .select("data")
+        .eq("id", "main_data")
+        .execute()
+    )
+    if response.data and len(response.data) > 0:
+      data = response.data[0]["data"]
+      st.session_state.lands = data.get("lands", [])
+      st.session_state.land_accounts = data.get("land_accounts", [])
+      st.session_state.stations = data.get("stations", [])
+      st.session_state.station_supplies = data.get("station_supplies", [])
+      st.session_state.saved_profits = data.get("saved_profits", {})
+      st.session_state.client_settings = data.get("client_settings", {})
+  except Exception as e:
+    st.error(f"خطأ في تحميل البيانات من Supabase: {e}")
+
+
+def save_data():
+  try:
+    data_to_save = {
+        "lands": st.session_state.get("lands", []),
+        "land_accounts": st.session_state.get("land_accounts", []),
+        "stations": st.session_state.get("stations", []),
+        "station_supplies": st.session_state.get("station_supplies", []),
+        "saved_profits": st.session_state.get("saved_profits", {}),
+        "client_settings": st.session_state.get("client_settings", {}),
+    }
+    supabase.table("app_state").upsert(
+        {"id": "main_data", "data": data_to_save}
+    ).execute()
+    st.success("تم الحفظ بنجاح في قاعدة البيانات!")
+  except Exception as e:
+    st.error(f"فشل الحفظ: {e}")
 
 # ==========================================
 # 🔐 إعدادات كلمة السر وملف الحفظ الدائم
@@ -68,45 +114,6 @@ def load_data():
                     st.session_state.last_date = datetime.date.today()
         except Exception as e:
             st.error(f"خطأ في تحميل البيانات المحلية: {e}")
-
-def save_data():
-    data = {
-        "lands": st.session_state.get("lands", []),
-        "land_accounts": st.session_state.get("land_accounts", []),
-        "stations": st.session_state.get("stations", []),
-        "station_supplies": st.session_state.get("station_supplies", []),
-        "saved_profits": st.session_state.get("saved_profits", {}),
-        "client_settings": st.session_state.get("client_settings", {}),
-        "last_date": str(st.session_state.get("last_date", datetime.date.today()))
-    }
-    
-    try:
-        with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-    except Exception:
-        pass
-
-    if GITHUB_TOKEN and GITHUB_REPO:
-        try:
-            file_info = get_github_file_info()
-            sha = file_info["sha"] if file_info else None
-            
-            json_str = json.dumps(data, ensure_ascii=False, indent=4)
-            encoded_content = base64.b64encode(json_str.encode("utf-8")).decode("utf-8")
-            
-            url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{DATA_FILE}"
-            headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-            
-            payload = {
-                "message": "تحديث تلقائي للبيانات 🌾",
-                "content": encoded_content
-            }
-            if sha:
-                payload["sha"] = sha
-
-            requests.put(url, headers=headers, json=payload)
-        except Exception as e:
-            st.error(f"خطأ أثناء الحفظ على GitHub: {e}")
 
 def clean_float(val):
     try:
