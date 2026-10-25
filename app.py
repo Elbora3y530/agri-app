@@ -27,6 +27,25 @@ def get_github_file_info():
     return None
 
 def load_data():
+    if os.path.exists(DATA_FILE):
+        try:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                st.session_state.lands = data.get("lands", [])
+                st.session_state.land_accounts = data.get("land_accounts", [])
+                st.session_state.stations = data.get("stations", [])
+                st.session_state.station_supplies = data.get("station_supplies", [])
+                st.session_state.saved_profits = data.get("saved_profits", {})
+                st.session_state.client_settings = data.get("client_settings", {})
+                last_d_str = data.get("last_date", str(datetime.date.today()))
+                try:
+                    st.session_state.last_date = datetime.datetime.strptime(last_d_str, "%Y-%m-%d").date()
+                except Exception:
+                    st.session_state.last_date = datetime.date.today()
+                return
+        except Exception as e:
+            st.error(f"خطأ في تحميل البيانات المحلية: {e}")
+
     file_info = get_github_file_info()
     if file_info and "content" in file_info:
         try:
@@ -43,27 +62,8 @@ def load_data():
                 st.session_state.last_date = datetime.datetime.strptime(last_d_str, "%Y-%m-%d").date()
             except Exception:
                 st.session_state.last_date = datetime.date.today()
-            return
         except Exception as e:
             st.error(f"خطأ في تحميل البيانات من GitHub: {e}")
-            
-    if os.path.exists(DATA_FILE):
-        try:
-            with open(DATA_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                st.session_state.lands = data.get("lands", [])
-                st.session_state.land_accounts = data.get("land_accounts", [])
-                st.session_state.stations = data.get("stations", [])
-                st.session_state.station_supplies = data.get("station_supplies", [])
-                st.session_state.saved_profits = data.get("saved_profits", {})
-                st.session_state.client_settings = data.get("client_settings", {})
-                last_d_str = data.get("last_date", str(datetime.date.today()))
-                try:
-                    st.session_state.last_date = datetime.datetime.strptime(last_d_str, "%Y-%m-%d").date()
-                except Exception:
-                    st.session_state.last_date = datetime.date.today()
-        except Exception as e:
-            st.error(f"خطأ في تحميل البيانات المحلية: {e}")
 
 def save_data():
     try:
