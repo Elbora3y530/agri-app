@@ -6,63 +6,93 @@ import json
 import os
 import base64
 import requests
-from supabase import create_client, Client
 
-# قراءة مفاتيح الاتصال من Streamlit Secrets
-SUPABASE_URL = st.secrets.get("SUPABASE_URL", "")
-SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", "")
+PASSWORD = "332007"
+DATA_FILE = "agri_data.json"
 
-# إنشاء اتصال مع قاعدة البيانات
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", "")
+GITHUB_REPO = st.secrets.get("GITHUB_REPO", "")
 
+def get_github_file_info():
+    if not GITHUB_TOKEN or not GITHUB_REPO:
+        return None
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{DATA_FILE}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            return response.json()
+    except Exception:
+        pass
+    return None
 
 def load_data():
-  try:
-    response = (
-        supabase.table("app_state")
-        .select("data")
-        .eq("id", "main_data")
-        .execute()
-    )
-    if response.data and len(response.data) > 0:
-      data = response.data[0]["data"]
-      st.session_state.lands = data.get("lands", [])
-      st.session_state.land_accounts = data.get("land_accounts", [])
-      st.session_state.stations = data.get("stations", [])
-      st.session_state.station_supplies = data.get("station_supplies", [])
-      st.session_state.saved_profits = data.get("saved_profits", {})
-      st.session_state.client_settings = data.get("client_settings", {})
-      last_d_str = data.get("last_date", str(datetime.date.today()))
-      try:
-        st.session_state.last_date = datetime.datetime.strptime(last_d_str, "%Y-%m-%d").date()
-      except Exception:
-        st.session_state.last_date = datetime.date.today()
-  except Exception as e:
-    st.error(f"خطأ في تحميل البيانات من Supabase: {e}")
-
+    file_info = get_github_file_info()
+    if file_info and "content" in file_info:
+        try:
+            content = base64.b64decode(file_info["content"]).decode("utf-8")
+            data = json.loads(content)
+            st.session_state.lands = data.get("lands", [])
+            st.session_state.land_accounts = data.get("land_accounts", [])
+            st.session_state.stations = data.get("stations", [])
+            st.session_state.station_supplies = data.get("station_supplies", [])
+            st.session_state.saved_profits = data.get("saved_profits", {})
+            st.session_state.client_settings = data.get("client_settings", {})
+            last_d_str = data.get("last_date", str(datetime.date.today()))
+            try:
+                st.session_state.last_date = datetime.datetime.strptime(last_d_str, "%Y-%m-%d").date()
+            except Exception:
+                st.session_state.last_date = datetime.date.today()
+            return
+        except Exception as e:
+            st.error(f"خطأ في تحميل البيانات من GitHub: {e}")
+            
+    if os.path.exists(DATA_FILE):
+        try:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                st.session_state.lands = data.get("lands", [])
+                st.session_state.land_accounts = data.get("land_accounts", [])
+                st.session_state.stations = data.get("stations", [])
+                st.session_state.station_supplies = data.get("station_supplies", [])
+                st.session_state.saved_profits = data.get("saved_profits", {})
+                st.session_state.client_settings = data.get("client_settings", {})
+                last_d_str = data.get("last_date", str(datetime.date.today()))
+                try:
+                    st.session_state.last_date = datetime.datetime.strptime(last_d_str, "%Y-%m-%d").date()
+                except Exception:
+                    st.session_state.last_date = datetime.date.today()
+        except Exception as e:
+            st.error(f"خطأ في تحميل البيانات المحلية: {e}")
 
 def save_data():
-  try:
-    data_to_save = {
-        "lands": st.session_state.get("lands", []),
-        "land_accounts": st.session_state.get("land_accounts", []),
-        "stations": st.session_state.get("stations", []),
-        "station_supplies": st.session_state.get("station_supplies", []),
-        "saved_profits": st.session_state.get("saved_profits", {}),
-        "client_settings": st.session_state.get("client_settings", {}),
-        "last_date": str(st.session_state.get("last_date", datetime.date.today())),
-    }
-    supabase.table("app_state").upsert(
-        {"id": "main_data", "data": data_to_save}
-    ).execute()
-    st.success("تم الحفظ بنجاح في قاعدة البيانات!")
-  except Exception as e:
-    st.error(f"فشل الحفظ: {e}")
-
-# ==========================================
-# 🔐 إعدادات كلمة السر
-# ==========================================
-PASSWORD = "332007"
+    try:
+        data = {
+            "lands": st.session_state.get("lands", []),
+            "land_accounts": st.session_state.get("land_accounts", []),
+            "stations": st.session_state.get("stations", []),
+            "station_supplies": st.session_state.get("station_supplies", []),
+            "saved_profits": st.session_state.get("saved_profits", {}),
+            "client_settings": st.session_state.get("client_settings", {}),
+            "last_date": str(st.session_state.get("last_date", datetime.date.today()))
+        }
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+            
+        if GITHUB_TOKEN and GITHUB_REPO:
+            url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{DATA_FILE}"
+            headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+            file_info = get_github_file_info()
+            sha = file_info["sha"] if file_info else None
+            json_str = json.dumps(data, ensure_ascii=False, indent=4)
+            encoded_content = base64.b64encode(json_str.encode("utf-8")).decode("utf-8")
+            payload = {"message": "Update agri data", "content": encoded_content}
+            if sha:
+                payload["sha"] = sha
+            requests.put(url, headers=headers, json=payload)
+        st.success("تم الحفظ بنجاح!")
+    except Exception as e:
+        st.error(f"فشل الحفظ: {e}")
 
 def clean_float(val):
     try:
@@ -79,7 +109,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# 🖨️ الحل النهائي لتثبيت الطباعة في صفحة A4 واحدة تماماً وإلغاء بقية صفحات Streamlit
 st.markdown("""
     <style>
     input[type=number]::-webkit-inner-spin-button,
@@ -98,7 +127,6 @@ st.markdown("""
         border-right: 5px solid #1E88E5;
         margin-bottom: 15px;
     }
-    
     @media print {
         @page {
             size: A4 portrait;
@@ -109,12 +137,7 @@ st.markdown("""
             overflow: hidden !important;
             background: #fff !important;
         }
-        /* إخفاء كل عناصر تطبيق streamlit بالكامل */
-        [data-testid="stSidebar"], 
-        header, 
-        footer, 
-        .stButton, 
-        .main .block-container > div:not(#print-section) {
+        [data-testid="stSidebar"], header, footer, .stButton, .main .block-container > div:not(#print-section) {
             display: none !important;
         }
         body * {
@@ -201,10 +224,6 @@ if "data_loaded" not in st.session_state:
     load_data()
     st.session_state.data_loaded = True
 
-
-# ==========================================
-# 🔒 شاشة تسجيل الدخول
-# ==========================================
 if not st.session_state.authenticated:
     st.markdown("<br><br>", unsafe_allow_html=True)
     c_login1, c_login2, c_login3 = st.columns([1, 2, 1])
@@ -224,10 +243,6 @@ if not st.session_state.authenticated:
         st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
-
-# ==========================================
-# 📋 القائمة الجانبية
-# ==========================================
 st.sidebar.markdown("### 🌾 شركة الرحمة")
 st.sidebar.caption("📞 01019381124 | 01000108658")
 st.sidebar.markdown("---")
@@ -246,9 +261,7 @@ st.sidebar.markdown("---")
 if st.sidebar.button("🔒 تسجيل الخروج", type="secondary", use_container_width=True):
     st.session_state.authenticated = False
     st.rerun()
-
-
-# ==========================================
+  # ==========================================
 # 1. حسابات الأراضي والعملاء
 # ==========================================
 if app_mode == "1. حسابات الأراضي والعملاء":
@@ -394,7 +407,6 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                             st.success("تم الحذف بنجاح!")
                                             st.rerun()
 
-                                # نافذة التعديل للحركة
                                 if st.session_state.get(f"editing_c_{selected_client}_{idx}", False):
                                     with st.form(f"form_edit_c_{selected_client}_{idx}"):
                                         st.write("✏️ **تعديل الحركة:**")
@@ -468,7 +480,6 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             """)
                             st.success(f"## 💰 المبلغ الباقي للعميل نهائياً: {remaining_balance:,.2f} جنيه")
 
-                            # 🖨️ كشف حساب للطباعة مثبت لصفحة A4 واحدة
                             print_html = f"""
                             <div id="print-section">
                                 <div class="print-box">
@@ -507,7 +518,6 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                         else:
                             st.info("لا توجد حركات مسجلة لهذا العميل حتى الآن.")
 
-                    # النوع الثاني: بطاطا صادر في البوكسة
                     else:
                         with st.form(f"box_client_trans_{selected_client}", clear_on_submit=True):
                             st.subheader("تسجيل توريد ومصاريف (صادر في البوكسة)")
@@ -598,7 +608,6 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                             st.success("تم الحذف بنجاح!")
                                             st.rerun()
 
-                                # نافذة تعديل صادر البوكسة
                                 if st.session_state.get(f"editing_box_{selected_client}_{b_idx}", False):
                                     with st.form(f"form_edit_box_{selected_client}_{b_idx}"):
                                         st.write("✏️ **تعديل حركة البوكسة:**")
@@ -655,7 +664,6 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             """)
                             st.success(f"### 💰 باقي له نهائياً: {final_box_rem:,.2f} جنيه")
 
-                            # 🖨️ كشف حساب البوكسة للطباعة في صفحة A4 واحدة
                             print_b_html = f"""
                             <div id="print-section">
                                 <div class="print-box">
@@ -854,7 +862,6 @@ elif app_mode == "2. التوريد للمحطات":
                                         st.success("تم الحذف بنجاح!")
                                         st.rerun()
 
-                            # نافذة تعديل توريد المحطة
                             if st.session_state.get(f"editing_st_{selected_station}_{idx_st}", False):
                                 with st.form(f"form_edit_st_{selected_station}_{idx_st}"):
                                     st.write("✏️ **تعديل توريد المحطة:**")
@@ -892,7 +899,6 @@ elif app_mode == "2. التوريد للمحطات":
                                         st.success("تم التعديل بنجاح!")
                                         st.rerun()
 
-                        # 🖨️ كشف حساب المحطة للطباعة في صفحة A4 واحدة
                         print_st_html = f"""
                         <div id="print-section">
                             <div class="print-box">
