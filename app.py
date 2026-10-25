@@ -86,13 +86,12 @@ def save_data():
             sha = file_info["sha"] if file_info else None
             json_str = json.dumps(data, ensure_ascii=False, indent=4)
             encoded_content = base64.b64encode(json_str.encode("utf-8")).decode("utf-8")
-            payload = {"message": "Update agri data", "content": encoded_content}
+            payload = {"message": "Auto update agri data", "content": encoded_content}
             if sha:
                 payload["sha"] = sha
             requests.put(url, headers=headers, json=payload)
-        st.success("تم الحفظ بنجاح!")
     except Exception as e:
-        st.error(f"فشل الحفظ: {e}")
+        st.error(f"فشل الحفظ التلقائي: {e}")
 
 def clean_float(val):
     try:
@@ -261,7 +260,7 @@ st.sidebar.markdown("---")
 if st.sidebar.button("🔒 تسجيل الخروج", type="secondary", use_container_width=True):
     st.session_state.authenticated = False
     st.rerun()
-  # ==========================================
+    # ==========================================
 # 1. حسابات الأراضي والعملاء
 # ==========================================
 if app_mode == "1. حسابات الأراضي والعملاء":
@@ -281,7 +280,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                 land_loc = st.text_input("موقع الأرض / الحوض")
                 land_type = st.selectbox("نوع التعامل / العميل", ["بطاطا تحت الشرب", "بطاطا صادر في البوكسة"])
             
-            save_l = st.form_submit_button("حفظ وحجز صفحة للعميل")
+            save_l = st.form_submit_button("حفظ تلقائي وحجز صفحة للعميل")
             if save_l:
                 if owner_name.strip():
                     existing_names = [l["owner"] for l in st.session_state.lands]
@@ -295,7 +294,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                             "type": land_type
                         })
                         save_data()
-                        st.success(f"تم إضافه العميل ({owner_name}) بنجاح!")
+                        st.success(f"تم إضافة وحفظ العميل ({owner_name}) تلقائياً بنجاح!")
                         st.rerun()
                 else:
                     st.error("يرجى إدخال اسم صاحب الأرض.")
@@ -323,7 +322,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                         if selected_client in st.session_state.client_settings:
                             del st.session_state.client_settings[selected_client]
                         save_data()
-                        st.success(f"تم حذف العميل ({selected_client}) وكل حركاته بنجاح!")
+                        st.success(f"تم حذف العميل ({selected_client}) وكل حركاته وتحديث النظام تلقائياً!")
                         st.rerun()
 
                 client_info = next((l for l in st.session_state.lands if l["owner"] == selected_client), None)
@@ -352,7 +351,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                 farza_in = st.text_input("وارد فرزة (بالوزن)", value="0")
                                 advanced_in = st.text_input("استلام صاحب الأرض فلوس (سلفة نقدية)", value="0")
                             
-                            add_trans_btn = st.form_submit_button("إضافة الحركة إلى صفحة العميل")
+                            add_trans_btn = st.form_submit_button("إضافة وحفظ الحركة تلقائياً")
                             
                             if add_trans_btn:
                                 st.session_state.last_date = record_date
@@ -367,7 +366,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                     "advanced_cash": clean_float(advanced_in)
                                 })
                                 save_data()
-                                st.success("تم إضافه الحركه بنجاح!")
+                                st.success("تم إضافة وحفظ الحركة تلقائياً بنجاح! ✅")
                                 st.rerun()
 
                         st.markdown("---")
@@ -404,7 +403,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                         if st.button("🗑️", key=f"del_c_{selected_client}_{idx}"):
                                             st.session_state.land_accounts.remove(record)
                                             save_data()
-                                            st.success("تم الحذف بنجاح!")
+                                            st.success("تم الحذف والتحديث التلقائي بنجاح!")
                                             st.rerun()
 
                                 if st.session_state.get(f"editing_c_{selected_client}_{idx}", False):
@@ -418,7 +417,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                         ed_far = st.text_input("وارد فرزة", value=str(record.get('farza', 0)))
                                         ed_adv = st.text_input("سلفة نقدية", value=str(record.get('advanced_cash', 0)))
 
-                                        if st.form_submit_button("💾 حفظ التعديل"):
+                                        if st.form_submit_button("💾 حفظ التعديل تلقائياً"):
                                             record['date'] = str(ed_date)
                                             record['expense_desc'] = ed_desc
                                             record['expense_amount'] = clean_float(ed_exp)
@@ -428,7 +427,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                             record['advanced_cash'] = clean_float(ed_adv)
                                             st.session_state[f"editing_c_{selected_client}_{idx}"] = False
                                             save_data()
-                                            st.success("تم التعديل بنجاح!")
+                                            st.success("تم التعديل والحفظ التلقائي بنجاح!")
                                             st.rerun()
 
                             st.markdown("---")
@@ -442,14 +441,14 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                 with col_f2:
                                     price_in = st.text_input("سعر الكيلو / الوحدة (جنيه)", value=str(current_client_settings.get("price", 0.0)))
                                 
-                                save_settings_btn = st.form_submit_button("💾 حفظ نسبة الخصم والسعر")
+                                save_settings_btn = st.form_submit_button("💾 حفظ نسبة الخصم والسعر تلقائياً")
                                 if save_settings_btn:
                                     st.session_state.client_settings[selected_client] = {
                                         "discount": clean_float(discount_in), 
                                         "price": clean_float(price_in)
                                     }
                                     save_data()
-                                    st.success("تم حفظ إعدادات الحساب بنجاح!")
+                                    st.success("تم حفظ إعدادات الحساب وتحديثها تلقائياً!")
                                     st.rerun()
                             
                             active_discount = st.session_state.client_settings.get(selected_client, {}).get("discount", 0.0)
@@ -536,7 +535,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                 b_disc_in = st.text_input("قيمة الخصم", value="0")
                                 b_price_in = st.text_input("سعر الكيلو", value="0")
 
-                            add_box_btn = st.form_submit_button("حفظ حركة الصادر في البوكسة")
+                            add_box_btn = st.form_submit_button("حفظ حركة الصادر في البوكسة تلقائياً")
                             if add_box_btn:
                                 raw_w = clean_float(b_raw_in)
                                 disc_v = clean_float(b_disc_in)
@@ -564,7 +563,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                     "advanced_cash": clean_float(b_adv_in)
                                 })
                                 save_data()
-                                st.success("تم إضافه الحركه بنجاح!")
+                                st.success("تم إضافة وحفظ حركة البوكسة تلقائياً بنجاح! ✅")
                                 st.rerun()
 
                         st.markdown("---")
@@ -605,7 +604,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                         if st.button("🗑️", key=f"del_box_{selected_client}_{b_idx}"):
                                             st.session_state.land_accounts.remove(b_rec)
                                             save_data()
-                                            st.success("تم الحذف بنجاح!")
+                                            st.success("تم الحذف والتحديث التلقائي بنجاح!")
                                             st.rerun()
 
                                 if st.session_state.get(f"editing_box_{selected_client}_{b_idx}", False):
@@ -620,7 +619,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                         eb_prc = st.text_input("السعر", value=str(b_rec.get('price', 0)))
                                         eb_adv = st.text_input("السلفة", value=str(b_rec.get('advanced_cash', 0)))
 
-                                        if st.form_submit_button("💾 حفظ التعديل"):
+                                        if st.form_submit_button("💾 حفظ التعديل تلقائياً"):
                                             r_w = clean_float(eb_raw)
                                             d_v = clean_float(eb_disc)
                                             p_c = clean_float(eb_prc)
@@ -644,7 +643,7 @@ if app_mode == "1. حسابات الأراضي والعملاء":
                                             b_rec['advanced_cash'] = clean_float(eb_adv)
                                             st.session_state[f"editing_box_{selected_client}_{b_idx}"] = False
                                             save_data()
-                                            st.success("تم التعديل بنجاح!")
+                                            st.success("تم التعديل والحفظ التلقائي بنجاح!")
                                             st.rerun()
 
                             tot_exp_box = sum(r.get('expense_amount', 0) for r in box_records)
@@ -720,7 +719,7 @@ elif app_mode == "2. التوريد للمحطات":
             with col_st2:
                 st_phone_input = st.text_input("رقم تليفون المحطة")
                 
-            save_st_btn = st.form_submit_button("حفظ وحجز صفحة للمحطة")
+            save_st_btn = st.form_submit_button("حفظ تلقائي وحجز صفحة للمحطة")
             if save_st_btn:
                 if st_name_input.strip():
                     existing_st = [s["name"] for s in st.session_state.stations]
@@ -729,7 +728,7 @@ elif app_mode == "2. التوريد للمحطات":
                     else:
                         st.session_state.stations.append({"name": st_name_input.strip(), "phone": st_phone_input.strip()})
                         save_data()
-                        st.success("تم إضافه المحطة بنجاح!")
+                        st.success("تم إضافة وحفظ المحطة تلقائياً بنجاح! ✅")
                         st.rerun()
                 else:
                     st.error("يرجى إدخال اسم المحطة.")
@@ -750,7 +749,7 @@ elif app_mode == "2. التوريد للمحطات":
                         st.session_state.stations = [s for s in st.session_state.stations if s["name"] != selected_station]
                         st.session_state.station_supplies = [s for s in st.session_state.station_supplies if s["station"] != selected_station]
                         save_data()
-                        st.success("تم حذف المحطة بنجاح!")
+                        st.success("تم حذف المحطة وتحديث النظام تلقائياً!")
                         st.rerun()
 
                 st_info = next((s for s in st.session_state.stations if s["name"] == selected_station), None)
@@ -791,7 +790,7 @@ elif app_mode == "2. التوريد للمحطات":
                             disc_val_in = st.text_input("قيمة الخصم", value="0")
                             price_st_in = st.text_input("السعر", value="0")
                         
-                        add_st_sup = st.form_submit_button("حفظ التوريد لصفحة المحطة")
+                        add_st_sup = st.form_submit_button("حفظ التوريد لصفحة المحطة تلقائياً")
                         
                         if add_st_sup:
                             r_w = clean_float(raw_weight_in)
@@ -819,7 +818,7 @@ elif app_mode == "2. التوريد للمحطات":
                                 "paid_amount": clean_float(paid_today_in)
                             })
                             save_data()
-                            st.success("تم إضافه الحركه بنجاح!")
+                            st.success("تم إضافة وحفظ التوريد تلقائياً بنجاح! ✅")
                             st.rerun()
 
                     st.markdown("---")
@@ -859,7 +858,7 @@ elif app_mode == "2. التوريد للمحطات":
                                     if st.button("🗑️", key=f"del_st_{selected_station}_{idx_st}"):
                                         st.session_state.station_supplies.remove(s_rec)
                                         save_data()
-                                        st.success("تم الحذف بنجاح!")
+                                        st.success("تم الحذف والتحديث التلقائي بنجاح!")
                                         st.rerun()
 
                             if st.session_state.get(f"editing_st_{selected_station}_{idx_st}", False):
@@ -873,7 +872,7 @@ elif app_mode == "2. التوريد للمحطات":
                                     es_prc = st.text_input("السعر", value=str(s_rec.get('price', 0)))
                                     es_paid = st.text_input("المبلغ المدفوع", value=str(s_rec.get('paid_amount', 0)))
 
-                                    if st.form_submit_button("💾 حفظ التعديل"):
+                                    if st.form_submit_button("💾 حفظ التعديل تلقائياً"):
                                         r_w = clean_float(es_raw)
                                         d_v = clean_float(es_disc)
                                         p_s = clean_float(es_prc)
@@ -896,7 +895,7 @@ elif app_mode == "2. التوريد للمحطات":
                                         s_rec['paid_amount'] = clean_float(es_paid)
                                         st.session_state[f"editing_st_{selected_station}_{idx_st}"] = False
                                         save_data()
-                                        st.success("تم التعديل بنجاح!")
+                                        st.success("تم التعديل والحفظ التلقائي بنجاح!")
                                         st.rerun()
 
                         print_st_html = f"""
@@ -1013,7 +1012,7 @@ elif app_mode == "3. صافي أرباحي من الأرض":
                                 st.text_input(f"سعر بوكسة #{idx}", value=str(saved_profits_dict.get(f"box_{idx}", 0.0)), key=f"p_box_{selected_prof_owner}_{idx}", label_visibility="collapsed")
 
                     st.markdown("---")
-                    save_all_prices = st.form_submit_button("💾 حفظ أسعار البيع وحساب صافي الربح / الخسارة النهائي")
+                    save_all_prices = st.form_submit_button("💾 حفظ أسعار البيع وحساب صافي الربح / الخسارة تلقائياً")
                     
                     if save_all_prices:
                         temp_dict = {}
@@ -1029,7 +1028,7 @@ elif app_mode == "3. صافي أرباحي من الأرض":
                         
                         st.session_state.saved_profits[selected_prof_owner] = temp_dict
                         save_data()
-                        st.success("تم حفظ أسعار البيع والنتائج بنجاح!")
+                        st.success("تم حفظ أسعار البيع وتحديث النتائج تلقائياً بنجاح! ✅")
                         st.rerun()
 
                 final_sales_rev = 0.0
